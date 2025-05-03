@@ -1,0 +1,20 @@
+"My bad!"
+
+R S T E A L
+E D U L F T
+N U M B R E
+L D I S P W
+B A E O O H
+I S L I P L
+S L E O T L
+Y P P S P I
+
+slip           6 2  e e e
+spill          8 4  e e n n
+falter         2 5  n e s s w
+topple         7 5  w sw w n e
+blunder        5 1  n ne w ne w n
+stumble        1 2  e s s e n n
+whoopsiedaisy  4 6  s w w ne w w s nw s sw s s
+
+https://www.nytimes.com/games/strands (4/28/2025)

@@ -1,0 +1,19 @@
+"Two thumbs up"
+
+C T B S P T
+O H E T O H
+A D G S L G
+N L I T O I
+O O P O T N
+R M I A P E
+A A T C L R
+P S I E T U
+
+coda         1 1  s se w
+parasite     8 1  n n se s e n se
+platoon      6 5  s nw ne w ne se
+moonlight    6 2  n w n e e n nw n
+spotlight    1 4  e s w se se n n n
+bestpicture  1 3  s se s sw s se se e n n
+
+https://www.nytimes.com/games/strands (3/8/2025)

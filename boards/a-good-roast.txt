@@ -1,0 +1,21 @@
+"A good roast"
+
+G L P L K C
+G E U E U R
+G I E G H A
+K L N C O A
+C C I R L U
+A S K C H G
+E K H A L W
+I R C R O H
+
+HOWL        8 6  w ne w
+ROAR        5 4  ne ne n
+LAUGH       5 5  ne s s w
+CACKLE      5 2  sw n n e ne
+GIGGLE      3 1  e nw n e s
+SHRIEK      6 2  se sw w n e
+CHUCKLE     4 4  ne n ne w w s
+CRACKINGUP  8 3  e n n w n n ne nw n
+
+https://www.nytimes.com/games/strands (3/22/2025)

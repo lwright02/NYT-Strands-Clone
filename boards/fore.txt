@@ -1,0 +1,21 @@
+"Fore!"
+
+R I S N O E
+D V B R I G
+W E U W E D
+O R L R C H
+D O C E P I
+E R F Y T P
+T T L U I I
+P U O G T L
+
+wood       3 1  s se w
+iron       2 5  w ne w
+wedge      3 4  e e n n
+driver     2 1  n e s s s
+putter     8 1  e n w n e
+chipper    4 5  e s s nw w n
+utility    7 4  se n se n nw w
+golfclubs  8 4  w n n n n n n n
+
+https://www.nytimes.com/games/strands (4/16/2025)

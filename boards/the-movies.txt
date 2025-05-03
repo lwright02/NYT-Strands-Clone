@@ -1,0 +1,20 @@
+"THE movies"
+
+R  G  N  E  G  R
+E  T  I  R  T  A
+H  O  A  F  A  D
+G  I  D  L  U  S
+T  R  T  I  E  N
+O  T  A  V  G  I
+N  I  E  A  N  I
+O  O  G  S  S  H
+
+ring       2 4  w n w
+titles     5 1  ne se ne se ne
+aviator    7 4  n n sw w w ne
+goonies    8 3  w w n e e se
+graduate   1 5  e s s sw n n nw
+shining    8 5  e n w ne n sw
+godfather  4 1  ne se ne w nw sw n n
+
+https://www.nytimes.com/games/strands (4/17/2025)

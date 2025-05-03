@@ -1,0 +1,21 @@
+"___ a ___"
+
+S T H T A E
+E A E B R T
+E L K R N H
+I F E C N I
+N T H A E C
+D A H N M B
+E G K A U E
+R H I E T R
+
+hint      3 6  s nw ne
+hike      8 2  e n se
+selfie    1 1  s se s w n
+gander    7 2  n nw s s s
+chance    4 4  sw e ne se w
+number    6 4  se n e s s
+breather  2 4  e ne w w w s se
+takethat  1 2  s se s sw se se se
+
+https://www.nytimes.com/games/strands (4/19/2025)

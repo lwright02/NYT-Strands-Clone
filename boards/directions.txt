@@ -1,0 +1,15 @@
+"Directions"
+
+E A S T
+T S E W
+S H D R
+O T I E
+U R I C
+T O O T
+H N S N
+
+east        1 1  e e e
+west        2 4  w w w
+south       3 1  s s s s
+north       7 2  n n n n
+directions  3 3  s ne s s s nw s se w

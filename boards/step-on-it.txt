@@ -1,0 +1,19 @@
+"Step on it!"
+
+D O O D R L
+T E W H A I
+N I R E L N
+A T M R U O
+O E A E A M
+C N L E T Z
+F C R O Z G
+L O O R I N
+
+CONCRETE  6 1  n se s e ne e nw
+HARDWOOD  2 4  e n w sw n w w
+LAMINATE  6 3  n n nw w s e s
+LINOLEUM  1 6  s s s nw w se se
+TERRAZZO  2 1  e se se se se sw w
+FLOORING  7 1  s e e e e e n
+
+https://www.nytimes.com/games/strands (4/4/2025)

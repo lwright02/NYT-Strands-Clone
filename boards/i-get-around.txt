@@ -1,0 +1,19 @@
+"I get around"
+
+R E T D E S
+A S O A L B
+O R K O R E
+B D A C L L
+E T E S O R
+W H E L I E
+L C Y B A O
+E C I W G N
+
+wagon         8 4  ne s ne s
+bicycle       7 4  sw w ne w w s
+scooter       5 4  n n nw n w w
+skateboard    2 2  se s sw w n n n se s
+rollerblades  5 6  w n e n w ne w w n e e
+wheelie       6 1  e e n se e e
+
+https://www.nytimes.com/games/strands (5/1/2025)

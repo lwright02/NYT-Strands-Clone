@@ -1,0 +1,21 @@
+"Grrr"
+
+Y K U R L Y
+N S D P E D
+A C X R E V
+R E O E O E
+D R I S V W
+C D E R S O
+Y M U K T U
+P R G Y H C
+
+VEXED      5 5  nw nw sw sw
+IRKED      5 3  se s nw w
+SURLY      2 2  ne e e e
+CRANKY     3 2  sw n n ne w
+GRUMPY     8 3  w ne w sw n
+PEEVED     2 4  se se n nw e
+TOUCHY     7 5  ne s s w w
+CROSSWORD  6 1  ne ne se se ne nw nw nw
+
+https://www.nytimes.com/games/strands (3/18/2025)

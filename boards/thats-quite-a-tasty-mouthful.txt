@@ -1,0 +1,18 @@
+"That's quite a (tasty) mouthful"
+
+N L A B E S
+O E M L L C
+F T R L O A
+O A E Y V D
+U W S A O C
+U R I L U A
+L G F L O R
+A U R A W E
+
+ARUGULA        8 4  w w n nw s s
+AVOCADO        5 4  ne n ne s s sw
+CAULIFLOWER    5 6  s w w w s e e s e n
+WATERMELON     5 2  n n se n n w n sw n
+FOURSYLLABLES  3 1  s s se ne ne n n nw e se n e
+
+https://www.nytimes.com/games/strands (4/9/2025)

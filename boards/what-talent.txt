@@ -1,0 +1,20 @@
+"What talent!"
+
+A C N A R A
+Y M T I O C
+T A G S C B
+J E C I A T
+G U I O I C
+L G R M R E
+E D T A C N
+R U E V A D
+
+duet         7 2  s e n
+comic        4 3  se s ne e
+dancer       8 6  w ne w ne w
+juggler      4 1  se w se w s s
+acrobat      1 6  s nw s se sw e
+magician     2 2  s e se ne nw n w
+varietyacts  8 4  n nw n nw nw n n e se se
+
+https://www.nytimes.com/games/strands (4/21/2025)

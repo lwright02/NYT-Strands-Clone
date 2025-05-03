@@ -1,0 +1,19 @@
+"Buzzing in"
+
+Y J R A D I
+D R E Y M O
+A O M E P G
+P A R H S N
+G P A P H I
+A D S H O L
+S R E C W S
+S W O T A C
+
+LINGO        6 6  n n n n
+PYRAMID      3 5  nw nw e se ne w
+PASSWORD     5 2  sw s s e e nw n
+JEOPARDY     1 2  se sw sw n ne w n
+GAMESHOWS    5 1  ne ne e se s s s e
+CATCHPHRASE  8 6  w w n n n n w s s s
+
+https://www.nytimes.com/games/strands (4/11/2025)

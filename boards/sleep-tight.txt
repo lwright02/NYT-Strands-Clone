@@ -1,0 +1,19 @@
+"Sleep tight"
+
+G U T I D M
+H A D A T E
+T R M N O I
+U O T I M E
+B E D S G U
+M I N M P L
+E N O A K R
+L A T S E A
+
+mask        6 4  s s ne
+earplugs    8 5  e n nw e n w w
+melatonin   6 1  s s e e n n w s
+meditation  1 6  s nw w w se e se w w
+mouthguard  3 3  sw w n n n e s s ne
+bedtime     5 1  e e n e e e
+
+https://www.nytimes.com/games/strands (4/27/2025)
