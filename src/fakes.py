@@ -9,7 +9,10 @@ from typing import TypeAlias
 Row: TypeAlias = int
 Col: TypeAlias = int
 
-
+STEPS: dict[Step, tuple[int, int]] = {
+        Step.N: (-1, 0), Step.S: (1, 0), Step.E: (0, 1), Step.W: (0, -1),
+        Step.NE: (-1, 1), Step.NW: (-1, -1), Step.SE: (1, 1), Step.SW: (1, -1)
+        }
 ######################################################################
 
 class Pos(PosBase):
@@ -19,40 +22,28 @@ class Pos(PosBase):
     the top-left corner of a board, and row and column
     indices increase down and to the right, respectively.
     """
+    r: Row
+    c: Col
+
+    def __init__(self, r: Row, c: Col) -> None:
+        """
+        Constructor
+        """
+        self.r = r
+        self.c = c
 
     def take_step(self, step: Step) -> "Pos":
         """
         Compute the position that results from starting at
         the current position and taking the specified step.
         """
-        row = self.r
-        col = self.c
+        row_dif: int
+        col_dif: int
+        row_dif, col_dif = STEPS[step]
 
-        if step == Step.N:
-            row -= 1
-        if step == Step.E:
-            col += 1
-        if step == Step.S:
-            row += 1
-        if step == Step.W:
-            col -= 1
+        return Pos(self.r + row_dif, self.c + col_dif)
 
-        if step == Step.NE:
-            row -= 1
-            col += 1
-        if step == Step.NW:
-            row -= 1
-            col -= 1
-        if step == Step.SE:
-            row += 1
-            col += 1
-        if step == Step.SW:
-            row += 1
-            col -= 1
-
-        return Pos(row, col)
-
-    def step_to(self, other: "Pos") -> Step:
+    def step_to(self, other: PosBase) -> Step:
         """
         Compute the difference in two positions, represented
         as a step from the current position to the other.
@@ -60,36 +51,19 @@ class Pos(PosBase):
         Raises ValueError if the other position is more
         than two steps away from self.
         """
-        row_diff = other.r - self.r
-        col_diff = other.c - self.c 
+        row_dif: int = other.r - self.r
+        col_dif: int = other.c - self.c 
 
-        if row_diff == 0 and col_diff == 0:
+        if row_dif == 0 and col_dif == 0:
             raise ValueError("Cannot test difference from a position to itself")
-
-        if abs(row_diff) > 1 or abs(col_diff) > 1:
-            raise ValueError
         
-        if row_diff == 0 or col_diff == 0:
-            if row_diff == -1:
-                return Step.N
-            if row_diff == 1:
-                return Step.S
-            if col_diff == 1:
-                return Step.E
-            if col_diff == -1:
-                return Step.W
-            
-        if row_diff == -1:
-            if col_diff == 1:
-                return Step.NE
-            return Step.NW
+        for step, (r, c) in STEPS.items():
+            if (row_dif, col_dif) == (r, c):
+                return step
         
-        if row_diff == 1:
-            if col_diff == 1:
-                return Step.SE
-            return Step.SW  
+        raise ValueError("More than 1 Step Away")
 
-    def is_adjacent_to(self, other: "Pos") -> bool:
+    def is_adjacent_to(self, other: PosBase) -> bool:
         """
         Decide whether or not the two positions are
         neighbors (that is, connected by a single step).
@@ -100,6 +74,16 @@ class Pos(PosBase):
             return False
         return True
 
+    def __str__(self) -> str:
+        """
+        Display the position as a string.
+        """
+        return f"({self.r}, {self.c})"
+
+
+######################################################################
+
+
 class StrandFake(StrandBase):
     """
     Strands, represented as a start position
@@ -109,7 +93,14 @@ class StrandFake(StrandBase):
     start: PosBase
     steps: list[Step]
 
-    def positions(self) -> list[Pos]:
+    def __init__(self, start: PosBase, steps: list[Step]):
+            """
+            Constructor
+            """
+            self.start = start
+            self.steps = steps
+
+    def positions(self) -> list[PosBase]:
         """
         Compute the absolute positions represented by the
         strand. These positions are independent of any
@@ -117,9 +108,9 @@ class StrandFake(StrandBase):
         positions assume a board of infinite size in all
         directions.
         """
-        pos = self.start
-        
-        pos_seq = [pos]
+        pos: PosBase = self.start
+        pos_seq: list[PosBase] = [pos]
+
         for step in self.steps:
             pos = pos.take_step(step)
             pos_seq.append(pos)
@@ -142,11 +133,17 @@ class StrandFake(StrandBase):
         """
         raise NotImplementedError
 
+
+######################################################################
+
+
 class BoardFake(BoardBase):
     """
     Boards for the Strands game, consisting of a
     rectangular grid of letters.
     """
+    letters: list[list[str]]
+
     def __init__(self, letters: list[list[str]]):
         """
         Constructor
@@ -172,15 +169,15 @@ class BoardFake(BoardBase):
         """
         return len(self.letters[0])
 
-    def get_letter(self, pos: Pos) -> str:
+    def get_letter(self, pos: PosBase) -> str:
         """
         Return the letter at a given position on the board.
 
         Raises ValueError if the position is not within the
         bounds of the board.
         """
-        row = pos.r
-        col = pos.c
+        row: Row = pos.r
+        col: Col = pos.c
 
         if row >= self.num_rows() or col >= self.num_cols():
             raise ValueError
@@ -197,10 +194,15 @@ class BoardFake(BoardBase):
         """
         raise NotImplementedError
 
+
+######################################################################
+
+
 class StrandsGameFake(StrandsGameBase):
     """
     Abstract base class for Strands game logic.
     """
+    
     def __init__(self, game_file: str | list[str], hint_threshold: int = 3):
         """
         Constructor
@@ -267,51 +269,52 @@ class StrandsGameFake(StrandsGameBase):
         else:
             raise TypeError("game_file must be a filename (str) or list[str]")
         
-        lines = []
+        lines: list[str] = []
         for ln in raw_lines:
             ln = ln.strip()
             if ln.lower().startswith("http"):
                 break
             lines.append(ln)
 
-        blank_idcs = [i for i, ln in enumerate(lines) if ln == ""]
+        blank_idcs: list[int] = [i for i, ln in enumerate(lines) if ln == ""]
         if len(blank_idcs) < 2:
             raise ValueError("Invalid game file")
-        first_blank, second_blank = blank_idcs[0], blank_idcs[1]
+        first_blank: int = blank_idcs[0]
+        second_blank: int = blank_idcs[1]
 
-        theme_lines = lines[0:first_blank]
-        board_lines = lines[(first_blank + 1):second_blank]
-        answer_lines = [ln for ln in lines[(second_blank + 1):] if ln]
+        theme_lines: list[str] = lines[0:first_blank]
+        board_lines: list[str] = lines[(first_blank + 1):second_blank]
+        answer_lines: list[str] = [ln for ln in lines[(second_blank + 1):] if ln]
 
-        theme = theme_lines[0]
-        self._theme = theme
+        self._theme: str = theme_lines[0]
 
         grid: list[list[str]] = []
         
         for row in board_lines:
-            letters = row.split()
+            letters: list[str] = row.split()
             if len(letters) != len(board_lines[0].split()):
                 raise TypeError("Invalid Strands Board (not rectangular)")
             grid.append([letter.lower() for letter in letters])
         
-        self._board = BoardFake(grid)
+        self._board: BoardFake = BoardFake(grid)
 
         self._answers: list[tuple[str, StrandFake]] = []
         for line in answer_lines:
-            sections = line.split()
-            word = sections[0].lower()
+            sections: list[str] = line.split()
+            word: str = sections[0].lower()
 
-            r = int(sections[1]) - 1
-            c = int(sections[2]) - 1
+            r: int = int(sections[1]) - 1
+            c: int = int(sections[2]) - 1
 
-            steps = [Step(tok.lower()) for tok in sections[3:]]
-            start = Pos(r, c)
+            steps: list[Step] = [Step(tok.lower()) for tok in sections[3:]]
+            
+            start: Pos = Pos(r, c)
             self._answers.append((word, StrandFake(start, steps)))
     
-        self._found = []
-        self._hint_threshold = hint_threshold
-        self._hint_meter = 0
-        self._active_hint = None
+        self._found: list[bool] = []
+        self._hint_threshold: int = hint_threshold
+        self._hint_meter: int = 0
+        self._active_hint: str | None = None
     
     def theme(self) -> str:
         """
@@ -325,7 +328,7 @@ class StrandsGameFake(StrandsGameBase):
         """
         return self._board
 
-    def answers(self) -> list[tuple[str, StrandFake]]:
+    def answers(self) -> list[tuple[str, StrandBase]]:
         """
         Return the answers for the game. Each answer
         is a pair comprising a theme word and the
