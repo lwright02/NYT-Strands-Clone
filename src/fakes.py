@@ -22,19 +22,26 @@ class Pos(PosBase):
     the top-left corner of a board, and row and column
     indices increase down and to the right, respectively.
     """
+    r: Row
+    c: Col
+
+    def __init__(self, r: Row, c: Col) -> None:
+        """
+        Constructor
+        """
+        self.r = r
+        self.c = c
 
     def take_step(self, step: Step) -> "Pos":
         """
         Compute the position that results from starting at
         the current position and taking the specified step.
         """
-        row: Row = self.r
-        col: Col = self.c
-
         row_dif: int
         col_dif: int
         row_dif, col_dif = STEPS[step]
-        return Pos(row + row_dif, col + col_dif)
+        
+        return Pos(self.r + row_dif, self.c + col_dif)
 
     def step_to(self, other: "Pos") -> Step:
         """
@@ -89,6 +96,13 @@ class StrandFake(StrandBase):
     start: PosBase
     steps: list[Step]
 
+    def __init__(self, start: PosBase, steps: list[Step]):
+            """
+            Constructor
+            """
+            self.start = start
+            self.steps = steps
+
     def positions(self) -> list[Pos]:
         """
         Compute the absolute positions represented by the
@@ -97,10 +111,11 @@ class StrandFake(StrandBase):
         positions assume a board of infinite size in all
         directions.
         """
-        pos = self.start
-        
-        pos_seq = [pos]
+        pos: PosBase = self.start
+        pos_seq: list[PosBase] = [pos]
+
         for step in self.steps:
+            step: Step
             pos = pos.take_step(step)
             pos_seq.append(pos)
 
@@ -127,6 +142,8 @@ class BoardFake(BoardBase):
     Boards for the Strands game, consisting of a
     rectangular grid of letters.
     """
+    letters: list[list[str]]
+
     def __init__(self, letters: list[list[str]]):
         """
         Constructor
