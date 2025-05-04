@@ -40,7 +40,7 @@ class Pos(PosBase):
         row_dif: int
         col_dif: int
         row_dif, col_dif = STEPS[step]
-        
+
         return Pos(self.r + row_dif, self.c + col_dif)
 
     def step_to(self, other: "Pos") -> Step:
@@ -137,6 +137,10 @@ class StrandFake(StrandBase):
         """
         raise NotImplementedError
 
+
+######################################################################
+
+
 class BoardFake(BoardBase):
     """
     Boards for the Strands game, consisting of a
@@ -176,8 +180,8 @@ class BoardFake(BoardBase):
         Raises ValueError if the position is not within the
         bounds of the board.
         """
-        row = pos.r
-        col = pos.c
+        row: Row = pos.r
+        col: Col = pos.c
 
         if row >= self.num_rows() or col >= self.num_cols():
             raise ValueError
@@ -194,10 +198,15 @@ class BoardFake(BoardBase):
         """
         raise NotImplementedError
 
+
+######################################################################
+
+
 class StrandsGameFake(StrandsGameBase):
     """
     Abstract base class for Strands game logic.
     """
+
     def __init__(self, game_file: str | list[str], hint_threshold: int = 3):
         """
         Constructor
