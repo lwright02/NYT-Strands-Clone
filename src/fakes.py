@@ -43,7 +43,7 @@ class Pos(PosBase):
 
         return Pos(self.r + row_dif, self.c + col_dif)
 
-    def step_to(self, other: "Pos") -> Step:
+    def step_to(self, other: PosBase) -> Step:
         """
         Compute the difference in two positions, represented
         as a step from the current position to the other.
@@ -58,15 +58,12 @@ class Pos(PosBase):
             raise ValueError("Cannot test difference from a position to itself")
         
         for step, (r, c) in STEPS.items():
-            step: Step
-            r: int
-            c: int
             if (row_dif, col_dif) == (r, c):
                 return step
         
         raise ValueError("More than 1 Step Away")
 
-    def is_adjacent_to(self, other: "Pos") -> bool:
+    def is_adjacent_to(self, other: PosBase) -> bool:
         """
         Decide whether or not the two positions are
         neighbors (that is, connected by a single step).
@@ -103,7 +100,7 @@ class StrandFake(StrandBase):
             self.start = start
             self.steps = steps
 
-    def positions(self) -> list[Pos]:
+    def positions(self) -> list[PosBase]:
         """
         Compute the absolute positions represented by the
         strand. These positions are independent of any
@@ -115,7 +112,6 @@ class StrandFake(StrandBase):
         pos_seq: list[PosBase] = [pos]
 
         for step in self.steps:
-            step: Step
             pos = pos.take_step(step)
             pos_seq.append(pos)
 
@@ -173,7 +169,7 @@ class BoardFake(BoardBase):
         """
         return len(self.letters[0])
 
-    def get_letter(self, pos: Pos) -> str:
+    def get_letter(self, pos: PosBase) -> str:
         """
         Return the letter at a given position on the board.
 
@@ -206,9 +202,7 @@ class StrandsGameFake(StrandsGameBase):
     """
     Abstract base class for Strands game logic.
     """
-    game_file: str | list[str]
-    hint_threshold: int
-
+    
     def __init__(self, game_file: str | list[str], hint_threshold: int = 3):
         """
         Constructor
@@ -277,7 +271,7 @@ class StrandsGameFake(StrandsGameBase):
         
         lines: list[str] = []
         for ln in raw_lines:
-            ln: str = ln.strip()
+            ln = ln.strip()
             if ln.lower().startswith("http"):
                 break
             lines.append(ln)
@@ -334,7 +328,7 @@ class StrandsGameFake(StrandsGameBase):
         """
         return self._board
 
-    def answers(self) -> list[tuple[str, StrandFake]]:
+    def answers(self) -> list[tuple[str, StrandBase]]:
         """
         Return the answers for the game. Each answer
         is a pair comprising a theme word and the
