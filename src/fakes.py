@@ -25,32 +25,17 @@ class Pos(PosBase):
         Compute the position that results from starting at
         the current position and taking the specified step.
         """
-        row = self.r
-        col = self.c
+        row: Row = self.r
+        col: Col = self.c
+        steps: dict[Step, tuple[int, int]] = {
+            Step.N: (-1, 0), Step.S: (1, 0), Step.E: (0, 1), Step.W: (0, -1),
+            Step.NE: (-1, 1), Step.NW: (-1, -1), Step.SE: (1, 1), Step.SW: (1, -1)
+        }
 
-        if step == Step.N:
-            row -= 1
-        if step == Step.E:
-            col += 1
-        if step == Step.S:
-            row += 1
-        if step == Step.W:
-            col -= 1
-
-        if step == Step.NE:
-            row -= 1
-            col += 1
-        if step == Step.NW:
-            row -= 1
-            col -= 1
-        if step == Step.SE:
-            row += 1
-            col += 1
-        if step == Step.SW:
-            row += 1
-            col -= 1
-
-        return Pos(row, col)
+        row_dif: int
+        col_dif: int
+        row_dif, col_dif = steps[step]
+        return Pos(row + row_dif, col + col_dif)
 
     def step_to(self, other: "Pos") -> Step:
         """
