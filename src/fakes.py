@@ -51,6 +51,9 @@ class Pos(PosBase):
             raise ValueError("Cannot test difference from a position to itself")
         
         for step, (r, c) in STEPS.items():
+            step: Step
+            r: int
+            c: int
             if (row_dif, col_dif) == (r, c):
                 return step
         
@@ -66,6 +69,16 @@ class Pos(PosBase):
         except ValueError:
             return False
         return True
+
+    def __str__(self) -> str:
+        """
+        Display the position as a string.
+        """
+        return f"({self.r}, {self.c})"
+
+
+######################################################################
+
 
 class StrandFake(StrandBase):
     """
