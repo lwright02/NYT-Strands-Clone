@@ -9,7 +9,10 @@ from typing import TypeAlias
 Row: TypeAlias = int
 Col: TypeAlias = int
 
-
+STEPS: dict[Step, tuple[int, int]] = {
+        Step.N: (-1, 0), Step.S: (1, 0), Step.E: (0, 1), Step.W: (0, -1),
+        Step.NE: (-1, 1), Step.NW: (-1, -1), Step.SE: (1, 1), Step.SW: (1, -1)
+        }
 ######################################################################
 
 class Pos(PosBase):
@@ -27,14 +30,10 @@ class Pos(PosBase):
         """
         row: Row = self.r
         col: Col = self.c
-        steps: dict[Step, tuple[int, int]] = {
-            Step.N: (-1, 0), Step.S: (1, 0), Step.E: (0, 1), Step.W: (0, -1),
-            Step.NE: (-1, 1), Step.NW: (-1, -1), Step.SE: (1, 1), Step.SW: (1, -1)
-        }
 
         row_dif: int
         col_dif: int
-        row_dif, col_dif = steps[step]
+        row_dif, col_dif = STEPS[step]
         return Pos(row + row_dif, col + col_dif)
 
     def step_to(self, other: "Pos") -> Step:
@@ -45,34 +44,18 @@ class Pos(PosBase):
         Raises ValueError if the other position is more
         than two steps away from self.
         """
-        row_diff = other.r - self.r
-        col_diff = other.c - self.c 
+        row_dif: int = other.r - self.r
+        col_dif: int = other.c - self.c 
+        step: Step | None = STEPS.get((row_dif, col_dif), None)
 
-        if row_diff == 0 and col_diff == 0:
+        if row_dif == 0 and col_dif == 0:
             raise ValueError("Cannot test difference from a position to itself")
-
-        if abs(row_diff) > 1 or abs(col_diff) > 1:
-            raise ValueError
         
-        if row_diff == 0 or col_diff == 0:
-            if row_diff == -1:
-                return Step.N
-            if row_diff == 1:
-                return Step.S
-            if col_diff == 1:
-                return Step.E
-            if col_diff == -1:
-                return Step.W
-            
-        if row_diff == -1:
-            if col_diff == 1:
-                return Step.NE
-            return Step.NW
+        elif step is None:
+            raise ValueError("More than 1 step away")
         
-        if row_diff == 1:
-            if col_diff == 1:
-                return Step.SE
-            return Step.SW  
+        else:
+            return step
 
     def is_adjacent_to(self, other: "Pos") -> bool:
         """
