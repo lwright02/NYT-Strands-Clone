@@ -206,6 +206,8 @@ class StrandsGameFake(StrandsGameBase):
     """
     Abstract base class for Strands game logic.
     """
+    game_file: str | list[str]
+    hint_threshold: int
 
     def __init__(self, game_file: str | list[str], hint_threshold: int = 3):
         """
@@ -273,51 +275,52 @@ class StrandsGameFake(StrandsGameBase):
         else:
             raise TypeError("game_file must be a filename (str) or list[str]")
         
-        lines = []
+        lines: list[str] = []
         for ln in raw_lines:
-            ln = ln.strip()
+            ln: str = ln.strip()
             if ln.lower().startswith("http"):
                 break
             lines.append(ln)
 
-        blank_idcs = [i for i, ln in enumerate(lines) if ln == ""]
+        blank_idcs: list[int] = [i for i, ln in enumerate(lines) if ln == ""]
         if len(blank_idcs) < 2:
             raise ValueError("Invalid game file")
-        first_blank, second_blank = blank_idcs[0], blank_idcs[1]
+        first_blank: int = blank_idcs[0]
+        second_blank: int = blank_idcs[1]
 
-        theme_lines = lines[0:first_blank]
-        board_lines = lines[(first_blank + 1):second_blank]
-        answer_lines = [ln for ln in lines[(second_blank + 1):] if ln]
+        theme_lines: list[str] = lines[0:first_blank]
+        board_lines: list[str] = lines[(first_blank + 1):second_blank]
+        answer_lines: list[str] = [ln for ln in lines[(second_blank + 1):] if ln]
 
-        theme = theme_lines[0]
-        self._theme = theme
+        self._theme: str = theme_lines[0]
 
         grid: list[list[str]] = []
         
         for row in board_lines:
-            letters = row.split()
+            letters: list[str] = row.split()
             if len(letters) != len(board_lines[0].split()):
                 raise TypeError("Invalid Strands Board (not rectangular)")
             grid.append([letter.lower() for letter in letters])
         
-        self._board = BoardFake(grid)
+        self._board: BoardFake = BoardFake(grid)
 
         self._answers: list[tuple[str, StrandFake]] = []
         for line in answer_lines:
-            sections = line.split()
-            word = sections[0].lower()
+            sections: list[str] = line.split()
+            word: str = sections[0].lower()
 
-            r = int(sections[1]) - 1
-            c = int(sections[2]) - 1
+            r: int = int(sections[1]) - 1
+            c: int = int(sections[2]) - 1
 
-            steps = [Step(tok.lower()) for tok in sections[3:]]
-            start = Pos(r, c)
+            steps: list[Step] = [Step(tok.lower()) for tok in sections[3:]]
+            
+            start: Pos = Pos(r, c)
             self._answers.append((word, StrandFake(start, steps)))
     
-        self._found = []
-        self._hint_threshold = hint_threshold
-        self._hint_meter = 0
-        self._active_hint = None
+        self._found: list[bool] = []
+        self._hint_threshold: int = hint_threshold
+        self._hint_meter: int = 0
+        self._active_hint: str | None = None
     
     def theme(self) -> str:
         """
