@@ -46,16 +46,15 @@ class Pos(PosBase):
         """
         row_dif: int = other.r - self.r
         col_dif: int = other.c - self.c 
-        step: Step | None = STEPS.get((row_dif, col_dif), None)
 
         if row_dif == 0 and col_dif == 0:
             raise ValueError("Cannot test difference from a position to itself")
         
-        elif step is None:
-            raise ValueError("More than 1 step away")
+        for step, (r, c) in STEPS.items():
+            if (row_dif, col_dif) == (r, c):
+                return step
         
-        else:
-            return step
+        raise ValueError("More than 1 Step Away")
 
     def is_adjacent_to(self, other: "Pos") -> bool:
         """
