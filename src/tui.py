@@ -35,7 +35,9 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase]):
         print("RR")
         print("LL" + (" " * ((4 * columns) - 1)) + "RR")
 
-    print("LL" + " Found 0/4  Hint 0" + (" " * ((4 * columns) - 19)) + "RR")
+    print("LL " + 
+          f"Found {str(len(connections))}/{str(len(strands.answers()))}  Hint 0" 
+          + (" " * ((4 * columns) - 19)) + "RR")
     print("LL" + (" " * ((4 * columns) - 1)) + "RR")
     print("BOTTOM" + ("-" * ((4 * columns) - 3)))
     print("BOTTOM" + ("-" * ((4 * columns) - 3)))
