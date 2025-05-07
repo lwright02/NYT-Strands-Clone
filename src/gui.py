@@ -10,7 +10,7 @@ from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
 
 COLORS: dict[str, tuple[int, int, int]] = {
     "WHITE": (255, 255, 255), "YELLOW": (255, 255, 0), "BLACK": (0, 0, 0), 
-    "LIGHT_BLUE": (170, 215, 230)
+    "LIGHTBLUE": (170, 215, 230)
     }
 CELL_SIZE: int = 50
 
@@ -40,7 +40,8 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase) -> 
                 y1: int = pos_1.r * CELL_SIZE + CELL_SIZE // 2
                 x2: int = pos_2.c * CELL_SIZE + CELL_SIZE // 2
                 y2: int = pos_2.r * CELL_SIZE + CELL_SIZE // 2
-                pygame.draw.line(surface, COLORS["LIGHT_BLUE"], (x1, y1), (x2, y2), width=4)
+                pygame.draw.line(surface, COLORS["LIGHTBLUE"], (x1, y1), 
+                    (x2, y2), width=4)
         for pos in positions:
             highlighted_positions.add((pos.r, pos.c))
 
@@ -48,23 +49,27 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase) -> 
     # that are already found
     for row in range(rows):
         for col in range(cols):
-            position: PosStub = PosStub(row, col)
+            position: PosBase = PosStub(row, col)
             letter: str = board.get_letter(position)
 
             if (row, col) in highlighted_positions:
-                center: tuple[int, int] = (col * CELL_SIZE + CELL_SIZE // 2, row * CELL_SIZE + CELL_SIZE // 2)
+                center: tuple[int, int] = (col * CELL_SIZE + CELL_SIZE // 2, 
+                    row * CELL_SIZE + CELL_SIZE // 2)
                 radius: int = CELL_SIZE // 3
-                pygame.draw.circle(surface, COLORS["LIGHT_BLUE"], center, radius)
+                pygame.draw.circle(surface, COLORS["LIGHTBLUE"], center, radius)
 
-            letter_surface: pygame.Surface = font.render(letter, True, COLORS["BLACK"])
+            letter_surface: pygame.Surface = font.render(letter, True, 
+                COLORS["BLACK"])
             letter_rect: pygame.Rect = letter_surface.get_rect(center = (
                 col * CELL_SIZE + CELL_SIZE // 2, 
                 row * CELL_SIZE + CELL_SIZE // 2)
                 )
             surface.blit(letter_surface, letter_rect)
     
-    # Adds/Updates the phrase on the bottom
-    hint_surface: pygame.Surface = font.render(f"Found {len(strands.found_strands())}/{len(strands.answers())} Use Hint", True, COLORS["BLACK"])
+    # Adds/Updates the "found" phrase on the bottom
+    hint_surface: pygame.Surface = font.render(f"Found {len(
+        strands.found_strands())}/{len(strands.answers())} Use Hint", True, 
+        COLORS["BLACK"])
     hint_rect: pygame.Rect = hint_surface.get_rect(center = (
         surface_width //2, 
         surface_height - (0.5 * CELL_SIZE))
@@ -84,22 +89,27 @@ def run_game() -> None:
     cols: int = board.num_cols()
     surface_width: int = CELL_SIZE * cols
     surface_height: int = CELL_SIZE * (rows + 1)
-    surface: pygame.Surface = pygame.display.set_mode((surface_width, surface_height))
+    surface: pygame.Surface = pygame.display.set_mode((surface_width, 
+        surface_height))
     clock: pygame.time.Clock = pygame.time.Clock()
     answers: list[tuple[str, StrandBase]] = game.answers()
     i: int = 0
 
     while not game.game_over():
-        
+
         events = pygame.event.get()
         for event in events:
+
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+
             elif event.type == pygame.KEYUP:
+
                 if event.key == pygame.K_q:
                     pygame.quit()
                     sys.exit()
+
                 if event.key == pygame.K_RETURN:
                     game.submit_strand(answers[i][1])
                     i += 1
@@ -107,6 +117,7 @@ def run_game() -> None:
         refresh_board(surface, game)
         pygame.display.update()
         clock.tick(30)
+
 
 if __name__ == "__main__":
     run_game()
