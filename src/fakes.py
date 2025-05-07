@@ -3,8 +3,8 @@ Game logic for Milestone 1:
 Pos, StrandFake, BoardFake, StrandsGameFake
 """
 
-from base import PosBase, StrandBase, BoardBase, StrandsGameBase, Step
 from typing import TypeAlias
+from base import PosBase, StrandBase, BoardBase, StrandsGameBase, Step
 
 Row: TypeAlias = int
 Col: TypeAlias = int
@@ -29,8 +29,7 @@ class Pos(PosBase):
         """
         Constructor
         """
-        self.r = r
-        self.c = c
+        super().__init__(r, c)
 
     def take_step(self, step: Step) -> "Pos":
         """
@@ -52,15 +51,15 @@ class Pos(PosBase):
         than two steps away from self.
         """
         row_dif: int = other.r - self.r
-        col_dif: int = other.c - self.c 
+        col_dif: int = other.c - self.c
 
         if row_dif == 0 and col_dif == 0:
             raise ValueError("Cannot test difference from a position to itself")
-        
+
         for step, (r, c) in STEPS.items():
             if (row_dif, col_dif) == (r, c):
                 return step
-        
+
         raise ValueError("More than 1 Step Away")
 
     def is_adjacent_to(self, other: PosBase) -> bool:
@@ -93,12 +92,11 @@ class StrandFake(StrandBase):
     start: PosBase
     steps: list[Step]
 
-    def __init__(self, start: PosBase, steps: list[Step]):
-            """
-            Constructor
-            """
-            self.start = start
-            self.steps = steps
+    def __init__(self, start: PosBase, steps: list[Step]) -> None:
+        """
+        Constructor
+        """
+        super().__init__(start, steps)
 
     def positions(self) -> list[PosBase]:
         """
@@ -116,7 +114,7 @@ class StrandFake(StrandBase):
             pos_seq.append(pos)
 
         return pos_seq
-    
+
     def is_cyclic(self) -> bool:
         """
         Decide whether or not the strand is cyclic. That is,
@@ -144,7 +142,7 @@ class BoardFake(BoardBase):
     """
     letters: list[list[str]]
 
-    def __init__(self, letters: list[list[str]]):
+    def __init__(self, letters: list[list[str]]) -> None:
         """
         Constructor
 
@@ -162,7 +160,7 @@ class BoardFake(BoardBase):
         Return the number of rows on the board.
         """
         return len(self.letters)
-    
+
     def num_cols(self) -> int:
         """
         Return the number of columns on the board.
@@ -181,7 +179,7 @@ class BoardFake(BoardBase):
 
         if row >= self.num_rows() or col >= self.num_cols():
             raise ValueError
-        
+
         return self.letters[row][col]
 
     def evaluate_strand(self, strand: StrandBase) -> str:
@@ -200,10 +198,10 @@ class BoardFake(BoardBase):
 
 class StrandsGameFake(StrandsGameBase):
     """
-    Abstract base class for Strands game logic.
+    Strands game logic.
     """
-    
-    def __init__(self, game_file: str | list[str], hint_threshold: int = 3):
+
+    def __init__(self, game_file: str | list[str], hint_threshold: int = 3) -> None:
         """
         Constructor
 
@@ -268,7 +266,7 @@ class StrandsGameFake(StrandsGameBase):
             raw_lines = [line.rstrip('\n') for line in game_file]
         else:
             raise TypeError("game_file must be a filename (str) or list[str]")
-        
+
         lines: list[str] = []
         for ln in raw_lines:
             ln = ln.strip()
@@ -289,16 +287,16 @@ class StrandsGameFake(StrandsGameBase):
         self._theme: str = theme_lines[0]
 
         grid: list[list[str]] = []
-        
+
         for row in board_lines:
             letters: list[str] = row.split()
             if len(letters) != len(board_lines[0].split()):
                 raise TypeError("Invalid Strands Board (not rectangular)")
             grid.append([letter.lower() for letter in letters])
-        
+
         self._board: BoardFake = BoardFake(grid)
 
-        self._answers: list[tuple[str, StrandFake]] = []
+        self._answers: list[tuple[str, StrandBase]] = []
         for line in answer_lines:
             sections: list[str] = line.split()
             word: str = sections[0].lower()
@@ -307,15 +305,15 @@ class StrandsGameFake(StrandsGameBase):
             c: int = int(sections[2]) - 1
 
             steps: list[Step] = [Step(tok.lower()) for tok in sections[3:]]
-            
+
             start: Pos = Pos(r, c)
             self._answers.append((word, StrandFake(start, steps)))
-    
-        self._found: list[bool] = []
+
+        self._found: list[StrandBase] = []
         self._hint_threshold: int = hint_threshold
         self._hint_meter: int = 0
-        self._active_hint: str | None = None
-    
+        self._active_hint: tuple[int, bool] | None = None
+
     def theme(self) -> str:
         """
         Return the theme for the game.
@@ -363,14 +361,14 @@ class StrandsGameFake(StrandsGameBase):
             theme_word, strand = answer
             if strand not in self.found_strands():
                 return False
-        
+
         return True
 
     def hint_threshold(self) -> int:
         """
         Return the hint threshold for the game.
         """
-        raise self._hint_threshold
+        return self._hint_threshold
 
     def hint_meter(self) -> int:
         """
@@ -380,7 +378,7 @@ class StrandsGameFake(StrandsGameBase):
         """
         return self._hint_meter
 
-    def active_hint(self) -> None | tuple[int, bool]:
+    def active_hint(self) -> tuple[int, bool] | None:
         """
         Return the active hint, if any.
 
@@ -399,7 +397,7 @@ class StrandsGameFake(StrandsGameBase):
         """
         return self._active_hint
 
-    def submit_strand(self, strand: StrandFake) -> tuple[str, bool] | str:
+    def submit_strand(self, strand: StrandBase) -> tuple[str, bool] | str:
         """
         Play a selected strand.
 

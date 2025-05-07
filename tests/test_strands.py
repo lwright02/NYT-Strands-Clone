@@ -87,14 +87,14 @@ def test_strand_positions_straight_cardinal() -> None:
     """
     start = Pos(3, 2)
     steps_dict = {
-        Step.N: [(2, 2), (1, 2), (0, 2)],
-        Step.S: [(4, 2), (5, 2), (6, 2)],
-        Step.E: [(3, 3), (3, 4), (3, 5)],
-        Step.W: [(3, 1), (3, 0), (3, -1)],
+        Step.N: [(2, 2), (1, 2), (0, 2), (-1, 2)],
+        Step.S: [(4, 2), (5, 2), (6, 2), (7, 2)],
+        Step.E: [(3, 3), (3, 4), (3, 5), (3, 6)],
+        Step.W: [(3, 1), (3, 0), (3, -1), (3, -2)],
     }
 
     for step, coords in steps_dict.items():
-        strand = Strand(start, [step] * 3)
+        strand = Strand(start, [step] * 4)
         expected_positions = [start] + [Pos(r, c) for (r, c) in coords]
         assert strand.positions() == expected_positions
 
@@ -107,14 +107,14 @@ def test_strand_positions_straight_intercardinal() -> None:
     """
     start = Pos(3, 2)
     steps_dict = {
-        Step.NE: [(2, 3), (1, 4), (0, 5)],
-        Step.NW: [(2, 1), (1, 0), (0, -1)],
-        Step.SE: [(4, 3), (5, 4), (6, 5)],
-        Step.SW: [(4, 1), (5, 0), (6, -1)],
+        Step.NE: [(2, 3), (1, 4), (0, 5), (0, 6)],
+        Step.NW: [(2, 1), (1, 0), (0, -1), (-1, -2)],
+        Step.SE: [(4, 3), (5, 4), (6, 5), (7, 6)],
+        Step.SW: [(4, 1), (5, 0), (6, -1), (7, 0)],
     }
 
     for step, coords in steps_dict.items():
-        strand = Strand(start, [step] * 3)
+        strand = Strand(start, [step] * 4)
         expected_positions = [start] + [Pos(r, c) for (r, c) in coords]
         assert strand.positions() == expected_positions
 
@@ -152,7 +152,7 @@ def test_load_game_face_time_file() -> None:
     assert game.theme() == "Face time"
     assert game.board().num_rows() == 8
     assert game.board().num_cols() == 6
-    assert len(game.answers()) > 0
+    assert len(game.answers()) == 6
 
 def test_load_game_face_time_variations() -> None:
     """
@@ -167,50 +167,57 @@ def test_load_game_face_time_variations() -> None:
     assert game.theme() == "Face time"
     assert game.board().num_rows() == 8
     assert game.board().num_cols() == 6
-    assert len(game.answers()) > 0
+    assert len(game.answers()) == 6
 
 def test_load_game_face_time_invalid() -> None:
     """
     Try loading invalid game files and confirm ValueError is raised.
     """
 
-    # Board is not rectangular
     broken_board = [
         '"Face time"', "",
-        "A B C D",     # 4 columns
-        "E F G",       # 3 columns – invalid
-        "",            # blank line
-        "primer 1 1 e e e",  # not relevant
+        "A B C D",
+        "E F G",
+        "",
+        "primer 1 1 e e e",
     ]
     with pytest.raises(ValueError):
         StrandsGame(broken_board)
 
-    # Empty answer line (sections[0] will fail)
     bad_answer = [
         '"Face time"', "",
         "A B C", "D E F", "",
-        "",  # empty answer line (or just "   ")
+        "",
     ]
     with pytest.raises(IndexError):
         StrandsGame(bad_answer)
 
 def test_play_game_face_time_once() -> None:
     """
-    Submit theme words in order and check progress.
+    Play all four answer strands one after another,
+    in the order in which they appear in the game file.
     """
     game = StrandsGame("boards/face_time.txt")
 
-    # Submit primer
-    result1 = game.submit_strand(Strand(Pos(3, 3), []))
-    assert result1 == ("primer", True)
+    assert game.submit_strand(Strand(Pos(3, 3), [])) == ("primer", True)
+    assert len(game.found_strands()) == 1
 
-    # Submit powder
-    result2 = game.submit_strand(Strand(Pos(6, 2), []))
-    assert result2 == ("powder", True)
+    assert game.submit_strand(Strand(Pos(6, 2), [])) == ("powder", True)
+    assert len(game.found_strands()) == 2
 
-    # Already found
-    result3 = game.submit_strand(Strand(Pos(3, 3), []))
-    assert result3 == "Already found"
+    assert game.submit_strand(Strand(Pos(1, 4), [])) == ("bronzer", True)
+    assert len(game.found_strands()) == 3
+
+    assert game.submit_strand(Strand(Pos(1, 1), [])) == ("concealer", True)
+    assert len(game.found_strands()) == 4
+
+    assert game.submit_strand(Strand(Pos(6, 1), [])) == ("foundation", True)
+    assert len(game.found_strands()) == 5
+
+    assert game.submit_strand(Strand(Pos(0, 3), [])) == ("makeupexam", True)
+    assert len(game.found_strands()) == 6
+
+    assert game.game_over()
 
 def test_play_game_face_time_twice() -> None:
     """
@@ -218,29 +225,40 @@ def test_play_game_face_time_twice() -> None:
     """
     game = StrandsGame("boards/face_time.txt")
 
-    # Submit powder first
-    result1 = game.submit_strand(Strand(Pos(6, 2), []))
-    assert result1 == ("powder", True)
+    assert game.submit_strand(Strand(Pos(6, 1), [])) == ("foundation", True)
+    assert game.submit_strand(Strand(Pos(6, 2), [])) == ("powder", True)
+    assert game.submit_strand(Strand(Pos(0, 3), [])) == ("makeupexam", True)
+    assert game.submit_strand(Strand(Pos(1, 1), [])) == ("concealer", True)
+    assert game.submit_strand(Strand(Pos(3, 3), [])) == ("primer", True)
+    assert game.submit_strand(Strand(Pos(1, 4), [])) == ("bronzer", True)
 
-    # Submit primer next
-    result2 = game.submit_strand(Strand(Pos(3, 3), []))
-    assert result2 == ("primer", True)
+    assert game.game_over()
 
 def test_play_game_face_time_three_times() -> None:
     """
-    Submit a theme word, then a non-theme word,
-    then repeat the original word again.
+    Play some unsuccessful strands along the way.
     """
     game = StrandsGame("boards/face_time.txt")
 
-    # Submit primer correctly
+    assert game.submit_strand(Strand(Pos(0, 3), [])) == ("makeupexam", True)
+    assert game.submit_strand(Strand(Pos(1, 2), [])) == "Not a theme word"
+
+    assert game.submit_strand(Strand(Pos(1, 4), [])) == ("bronzer", True)
+    assert game.submit_strand(Strand(Pos(2, 3), [])) == "Not a theme word"
+    assert game.submit_strand(Strand(Pos(3, 2), [])) == "Not a theme word"
+    assert game.submit_strand(Strand(Pos(1, 4), [])) == "Already found"
+    assert len(game.found_strands()) == 2
+
+    assert game.submit_strand(Strand(Pos(1, 1), [])) == ("concealer", True)
+    assert game.submit_strand(Strand(Pos(6, 1), [])) == ("foundation", True)
+    assert game.submit_strand(Strand(Pos(5, 1), [])) == "Not a theme word"
+    assert len(game.found_strands()) == 3
+
+    assert game.submit_strand(Strand(Pos(1, 1), [])) == "Already found"
     assert game.submit_strand(Strand(Pos(3, 3), [])) == ("primer", True)
+    assert game.submit_strand(Strand(Pos(6, 2), [])) == ("powder", True)
 
-    # Submit invalid strand (not a theme word)
-    assert game.submit_strand(Strand(Pos(0, 0), [])) == "Not a theme word"
-
-    # Submit the same correct word again
-    assert game.submit_strand(Strand(Pos(3, 3), [])) == "Already found"
+    assert game.game_over()
 
 def test_play_game_face_time_more() -> None:
     """
@@ -248,17 +266,20 @@ def test_play_game_face_time_more() -> None:
     """
     game = StrandsGame("boards/face_time.txt")
 
-    # Hint before anything found: should return index 0 with show=False
     assert game.use_hint() == (0, False)
-
-    # Use it again: now it should show start/end
+    assert game.active_hint() == (0, False)
+    
     assert game.use_hint() == (0, True)
-
-    # Use it again: still active, already showing, so no change
     assert game.use_hint() == "Use your current hint"
-
-    # Submit the hint's word: primer at (4, 4) -> Pos(3, 3)
+    assert game.active_hint() == (0, True)
+    
     assert game.submit_strand(Strand(Pos(3, 3), [])) == ("primer", True)
-
-    # Hint now should reset; call use_hint again to get the next one
     assert game.use_hint() == (1, False)
+    
+    assert game.submit_strand(Strand(Pos(1, 4), [])) == ("bronzer", True)
+    assert game.use_hint() == (1, True)
+    assert game.submit_strand(Strand(Pos(3, 2), [])) == "Not a theme word"
+    
+    assert game.submit_strand(Strand(Pos(6, 2), [])) == ("powder", True)
+    assert len(game.found_strands()) == 3
+    assert game.active_hint() == (3, False)
