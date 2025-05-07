@@ -27,22 +27,34 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase) -> 
     surface_height = CELL_SIZE * (rows + 1)
     font = pygame.font.SysFont(None, 36)
 
-    # Creates a set of positions for the found words
+    # Creates a set of positions for the found words and adds the lines between
+    # the positions
     highlighted_positions = set()
     for word in strands.found_strands():
-        for pos in word.positions():
+        positions = word.positions()
+        if len(positions) >= 2:
+            for i in range(len(positions) - 1):
+                pos_1 = positions[i]
+                pos_2 = positions[i + 1]
+                x1 = pos_1.c * CELL_SIZE + CELL_SIZE // 2
+                y1 = pos_1.r * CELL_SIZE + CELL_SIZE // 2
+                x2 = pos_2.c * CELL_SIZE + CELL_SIZE // 2
+                y2 = pos_2.r * CELL_SIZE + CELL_SIZE // 2
+                pygame.draw.line(surface, COLORS["LIGHT_BLUE"], (x1, y1), (x2, y2), width=4)
+        for pos in positions:
             highlighted_positions.add((pos.r, pos.c))
 
+    # Adds/Updates the letters on the surface as well as blue circles for words
+    # that are already found
     for row in range(rows):
         for col in range(cols):
             position = PosStub(row, col)
             letter = board.get_letter(position)
-            rect = (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
 
             if (row, col) in highlighted_positions:
-                pygame.draw.rect(surface, COLORS["LIGHT_BLUE"], rect, width = 2)
-            else:
-                pygame.draw.rect(surface, COLORS["YELLOW"], rect, width = 2)
+                center = (col * CELL_SIZE + CELL_SIZE // 2, row * CELL_SIZE + CELL_SIZE // 2)
+                radius = CELL_SIZE // 3
+                pygame.draw.circle(surface, COLORS["LIGHT_BLUE"], center, radius)
 
             letter_surface = font.render(letter, True, COLORS["BLACK"])
             letter_rect = letter_surface.get_rect(center = (
@@ -51,6 +63,7 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase) -> 
                 )
             surface.blit(letter_surface, letter_rect)
     
+    # Adds/Updates the phrase on the bottom
     hint_surface = font.render(f"Found {len(strands.found_strands())}/{len(strands.answers())} Use Hint", True, COLORS["BLACK"])
     hint_rect = hint_surface.get_rect(center = (
         surface_width //2, 
