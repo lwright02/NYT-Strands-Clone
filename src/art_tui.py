@@ -1,16 +1,7 @@
 import sys
-from ui import ArtTUIBase, TUIStub  # adjust import as needed
+from ui import ArtTUIBase, TUIStub
 
-class ANSI:
-    COLORS = [
-        "\033[38;5;204m",
-        "\033[38;5;113m",
-        "\033[38;5;117m",
-        "\033[38;5;221m",
-        "\033[38;5;141m",
-        "\033[38;5;186m"
-    ]
-    RESET = "\033[0m"
+CHARS = ['#', '@', '%', '=', '+', '.']
 
 class ArtTUIWrappers(ArtTUIBase):
     def __init__(self, frame_width: int, interior_width: int):
@@ -18,28 +9,27 @@ class ArtTUIWrappers(ArtTUIBase):
         self.interior_width = interior_width
 
     def print_top_edge(self) -> None:
-        for i in reversed(range(self.frame_width)):
-            color = ANSI.COLORS[(self.frame_width - 1 - i) % len(ANSI.COLORS)]
-            print(" " * (self.frame_width - i) + color + "█" * (self.interior_width + 2 * i + 2) + ANSI.RESET)
+        full_width = self.interior_width + 2 * (self.frame_width + 1) - 2
+        for i in range(self.frame_width):
+            char = CHARS[i % len(CHARS)]
+            print(char * full_width)
 
     def print_bottom_edge(self) -> None:
-        for i in range(self.frame_width):
-            color = ANSI.COLORS[(self.frame_width - 1 - i) % len(ANSI.COLORS)]
-            print(" " * (self.frame_width - i) + color + "█" * (self.interior_width + 2 * i + 2) + ANSI.RESET)
+        full_width = self.interior_width + 2 * (self.frame_width + 1) - 2
+        for i in reversed(range(self.frame_width)):
+            char = CHARS[i % len(CHARS)]
+            print(char * full_width)
 
     def print_left_bar(self) -> None:
-        line = [" "] * (self.frame_width + 1)
         for i in range(self.frame_width):
-            color = ANSI.COLORS[i % len(ANSI.COLORS)]
-            line[i] = color + "█" + ANSI.RESET
-        print("".join(line), end="")
+            char = CHARS[i % len(CHARS)]
+            print(char, end="")
 
     def print_right_bar(self) -> None:
-        line = [" "] * (self.frame_width + 1)
-        for i in range(self.frame_width):
-            color = ANSI.COLORS[i % len(ANSI.COLORS)]
-            line[self.frame_width - i] = color + "█" + ANSI.RESET
-        print("".join(line))
+        for i in reversed(range(self.frame_width)):
+            char = CHARS[i % len(CHARS)]
+            print(char, end="")
+        print()
 
 if __name__ == "__main__":
     fw, width, height = map(int, sys.argv[1:])
