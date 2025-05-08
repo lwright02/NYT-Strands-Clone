@@ -3,13 +3,37 @@ TUI for Strands
 """
 
 import sys
-from strands import Strand
+import termios
+import tty
 from fakes import Pos, StrandFake, BoardFake, StrandsGameFake
 from stubs import PosStub, StrandStub, BoardStub, StrandsGameStub
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
 
 
-def update_display(strands: StrandsGameBase, connections: list[StrandBase]):
+fdInput = sys.stdin.fileno()
+termAttr = termios.tcgetattr(0)
+
+def getch() -> str:
+    """
+    Slightly modified version of getch function from stackexchange link posted
+    on canvas.
+    """
+    try:
+        tty.setraw(fdInput)
+        ch = sys.stdin.buffer.read(1)
+        return ch.decode(sys.stdin.encoding or "utf-8", errors="ignore")
+    finally:
+        termios.tcsetattr(fdInput, termios.TCSADRAIN, termAttr)
+
+
+def update_display(strands: StrandsGameBase, 
+                   connections: list[StrandBase]) -> None:
+    """
+    Given all the words that have been found, this function will print what
+    the board looks like at a given time. The found words are highlighted, and
+    there is a tracker of how many words you've found and how many hints you've
+    used at the bottom of the game. 
+    """
     board: BoardBase = strands.board()
     rows: int = board.num_rows()
     columns: int = board.num_cols()
@@ -17,15 +41,15 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase]):
     reset: str = "\033[0m"
     blue: str = "\033[34m"
 
-    horiz: set[tuple[int, tuple[int, int]]] = set()
-    vert: set[tuple[int, tuple[int, int]]] = set()
-    diag_slash: set[tuple[tuple[int, int], tuple[int, int]]] = set()
-    diag_backslash: set[tuple[tuple[int, int], tuple[int, int]]] = set()
+    horiz: set[tuple[int, int]] = set()
+    vert: set[tuple[int, int]] = set()
+    diag_slash: set[tuple[int, int]] = set()
+    diag_backslash: set[tuple[int, int]] = set()
     for strand in connections:
         positions: list[PosBase] = strand.positions()
         for i, _ in enumerate(positions[:-1]):
-            p1: int = positions[i]
-            p2: int = positions[i+1]
+            p1: PosBase = positions[i]
+            p2: PosBase = positions[i+1]
             r1: int
             c1: int
             r1, c1 = p1.r, p1.c
@@ -98,7 +122,6 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase]):
                 rr, cc = coord
                 if rr == r:
                     between_rows[cc * 4 + 2] = "\\"
-        
         print("LL " + "".join(between_rows) + "RR")
 
     found_count = len(connections)
@@ -110,16 +133,20 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase]):
     print("BOTTOM" + ("-" * ((4 * columns) - 3)))
 
 
-def play_game():
+def play_game() -> None:
+    """
+    Allows for the game to be run in the terminal.
+    """
     game: StrandsGameBase = StrandsGameStub("filename", hint_threshold = 3)
 
     while not game.game_over():
         update_display(game, game.found_strands())
-        key = input("> ")
+        key = getch()
         if key == "q":
             break
-        if key == "":
-            game.submit_strand(None)
+        if key == "\r":
+            _, next_strand = game.answers()[len(game.found_strands())]
+            game.submit_strand(next_strand)
     
     update_display(game, game.found_strands())
 
