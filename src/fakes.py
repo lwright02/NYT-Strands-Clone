@@ -155,6 +155,17 @@ class BoardFake(BoardBase):
         """
         self.letters = letters
 
+        for row in letters:
+            if len(row) != len(letters[0]):
+                raise TypeError("Invalid Strands Board (not rectangular)")
+            for letter in row:
+                if len(letter) > 1:
+                    raise ValueError("Invalid character: not a single letter")
+                if letter.isupper():
+                    raise ValueError("Invalid character: not lowercase")
+                if not letter.isalpha():
+                    raise ValueError("Invalid character: not alphabetical")
+    
     def num_rows(self) -> int:
         """
         Return the number of rows on the board.

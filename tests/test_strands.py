@@ -3,23 +3,9 @@ Tests for Milestone 2 Game Logic
 """
 
 import pytest
-
+import os
 from base import BoardBase, PosBase, Step, StrandBase, StrandsGameBase
 from strands import Board, Pos, Strand, StrandsGame
-
-eight_neighbors = [
-    (Step.N,  Pos(2, 2)),
-    (Step.S,  Pos(4, 2)),
-    (Step.E,  Pos(3, 3)),
-    (Step.W,  Pos(3, 1)),
-    (Step.NW, Pos(2, 1)),
-    (Step.NE, Pos(2, 3)),
-    (Step.SW, Pos(4, 1)),
-    (Step.SE, Pos(4, 3)),
-]
-
-cardinals = [Step.N, Step.S, Step.E, Step.W]
-intercardinals = [Step.NW, Step.NE, Step.SW, Step.SE]
 
 def test_inheritance() -> None:
     """Test required inheritance"""
@@ -38,46 +24,56 @@ def test_inheritance() -> None:
         StrandsGame, StrandsGameBase
     ), "StrandsGame should inherit from StrandsGameBase"
 
+eight_neighbors = [
+    (Step.N,  Pos(2, 2)),
+    (Step.S,  Pos(4, 2)),
+    (Step.E,  Pos(3, 3)),
+    (Step.W,  Pos(3, 1)),
+    (Step.NW, Pos(2, 1)),
+    (Step.NE, Pos(2, 3)),
+    (Step.SW, Pos(4, 1)),
+    (Step.SE, Pos(4, 3)),
+]
 
-def test_pos_take_step() -> None:
+@pytest.mark.parametrize("step, expected", eight_neighbors)
+def test_pos_take_step(step, expected) -> None:
     """
     Test stepping in eight neighboring directions
     """
     pos = Pos(3, 2)
-    for step, expected in eight_neighbors:
-        assert pos.take_step(step) == expected
+    assert pos.take_step(step) == expected
 
 
-def test_pos_step_to_success() -> None:
+@pytest.mark.parametrize("step, expected", eight_neighbors)
+def test_pos_step_to_success(step, expected) -> None:
     """Test differences from eight neighbors"""
     pos = Pos(3, 2)
-    for step, expected in eight_neighbors:
-        assert pos.step_to(expected) == step
+    assert pos.step_to(expected) == step
 
 
-def test_pos_step_to_failure() -> None:
-    """Test differences from positions two and three steps away"""
-    pos = Pos(3, 2)
-    
-    two_step_apart = [
+two_steps_apart = [
     Pos(5, 2),
     Pos(3, 4),
     Pos(5, 4),
     Pos(1, 3), 
-    ]
+]
 
-    three_step_apart = [
+three_steps_apart = [
     Pos(0, 2),
     Pos(1, 3),
     Pos(3, 5),
     Pos(3, -1), 
-    ]
-    
-    for other in two_step_apart + three_step_apart:
-        with pytest.raises(ValueError):
-            pos.step_to(other)
+]
 
-        assert not pos.is_adjacent_to(other)
+@pytest.mark.parametrize("other", two_steps_apart + three_steps_apart)
+def test_pos_step_to_failure(other) -> None:
+    """Test differences from positions two and three steps away"""
+    pos = Pos(3, 2)
+    
+    with pytest.raises(ValueError):
+        pos.step_to(other)
+
+    assert not pos.is_adjacent_to(other)
 
 def test_strand_positions_straight_cardinal() -> None:
     """
@@ -145,9 +141,9 @@ def test_strand_positions_long() -> None:
 
 def test_load_game_face_time_file() -> None:
     """
-    Load the official face_time.txt file and check basic values.
+    Load the official face-time.txt file and check basic values.
     """
-    game = StrandsGame("boards/face_time.txt")
+    game = StrandsGame("boards/face-time.txt")
 
     assert game.theme() == "Face time"
     assert game.board().num_rows() == 8
@@ -159,7 +155,7 @@ def test_load_game_face_time_variations() -> None:
     Load the same game using a list of strings instead of a file,
     and check that it still works.
     """
-    with open("boards/face_time.txt") as f:
+    with open("boards/face-time.txt") as f:
         lines = f.readlines()
 
     game = StrandsGame(lines)
@@ -169,117 +165,336 @@ def test_load_game_face_time_variations() -> None:
     assert game.board().num_cols() == 6
     assert len(game.answers()) == 6
 
-def test_load_game_face_time_invalid() -> None:
+invalid_boards_face_time = [
+    (
+        [
+            '"Face time"', "",
+            "A B C D",
+            "E F G",
+            "",
+            "primer 1 1 e e e",
+        ],
+        ValueError
+    ),
+    (
+        [
+            '"Face time"', "",
+            "A B C", "D E F", "",
+            "",
+        ],
+        IndexError
+    ),
+]
+
+@pytest.mark.parametrize("board, error", invalid_boards_face_time)
+def test_load_game_face_time_invalid(board, error) -> None:
     """
-    Try loading invalid game files and confirm ValueError is raised.
+    Try loading invalid game files and confirm the expected
+    errors are raised.
     """
+    with pytest.raises(error):
+        StrandsGame(board)
 
-    broken_board = [
-        '"Face time"', "",
-        "A B C D",
-        "E F G",
-        "",
-        "primer 1 1 e e e",
-    ]
-    with pytest.raises(ValueError):
-        StrandsGame(broken_board)
+@pytest.fixture
+def ft_game():
+    return StrandsGame("boards/face-time.txt")
 
-    bad_answer = [
-        '"Face time"', "",
-        "A B C", "D E F", "",
-        "",
-    ]
-    with pytest.raises(IndexError):
-        StrandsGame(bad_answer)
+def play_game_once_helper(game):
+    """
+    Helper function that plays answer strands in the
+    order in which they appear in the game file.
+    """
+    length = 0
+    for word, correct_strand in game.answers():
+        length += 1
+        assert game.submit_strand(correct_strand) == (word, True)
+        assert len(game.found_strands()) == length
+    assert game.game_over()
 
-def test_play_game_face_time_once() -> None:
+def play_game_twice_helper(game):
+    """
+    Helper function that plays answer strands in the
+    reverse order in which they appear in the game file.
+    """
+    for word, correct_strand in game.answers()[::-1]:
+        assert game.submit_strand(correct_strand) == (word, True)
+    assert game.game_over()
+
+def play_game_more_helper(game):
+    """
+    Helper function providing logic to trigger each 
+    of the use_hint stages.
+    """
+    assert game.use_hint() == (0, False)
+    assert game.active_hint() == (0, False)
+
+    assert game.use_hint() == (0, True)
+    assert game.use_hint() == "Use your current hint"
+    assert game.active_hint() == (0, True)
+
+    word, strand = game.answers()[0]
+    assert game.submit_strand(strand) == (word, True)
+    assert game.use_hint() == (1, False)
+
+    word, strand = game.answers()[2]
+    assert game.submit_strand(strand) == (word, True)
+    assert game.use_hint() == (1, True)
+
+    word, strand = game.answers()[1]
+    assert game.submit_strand(strand) == (word, True)
+    assert game.active_hint() == (3, False)
+
+def test_play_game_face_time_once(ft_game) -> None:
     """
     Play all four answer strands one after another,
     in the order in which they appear in the game file.
     """
-    game = StrandsGame("boards/face_time.txt")
+    play_game_once_helper(ft_game)
 
-    assert game.submit_strand(Strand(Pos(3, 3), [])) == ("primer", True)
-    assert len(game.found_strands()) == 1
-
-    assert game.submit_strand(Strand(Pos(6, 2), [])) == ("powder", True)
-    assert len(game.found_strands()) == 2
-
-    assert game.submit_strand(Strand(Pos(1, 4), [])) == ("bronzer", True)
-    assert len(game.found_strands()) == 3
-
-    assert game.submit_strand(Strand(Pos(1, 1), [])) == ("concealer", True)
-    assert len(game.found_strands()) == 4
-
-    assert game.submit_strand(Strand(Pos(6, 1), [])) == ("foundation", True)
-    assert len(game.found_strands()) == 5
-
-    assert game.submit_strand(Strand(Pos(0, 3), [])) == ("makeupexam", True)
-    assert len(game.found_strands()) == 6
-
-    assert game.game_over()
-
-def test_play_game_face_time_twice() -> None:
+def test_play_game_face_time_twice(ft_game) -> None:
     """
     Submit same answers as previous test but out of order.
     """
-    game = StrandsGame("boards/face_time.txt")
+    play_game_twice_helper(ft_game)
 
-    assert game.submit_strand(Strand(Pos(6, 1), [])) == ("foundation", True)
-    assert game.submit_strand(Strand(Pos(6, 2), [])) == ("powder", True)
-    assert game.submit_strand(Strand(Pos(0, 3), [])) == ("makeupexam", True)
-    assert game.submit_strand(Strand(Pos(1, 1), [])) == ("concealer", True)
-    assert game.submit_strand(Strand(Pos(3, 3), [])) == ("primer", True)
-    assert game.submit_strand(Strand(Pos(1, 4), [])) == ("bronzer", True)
 
-    assert game.game_over()
-
-def test_play_game_face_time_three_times() -> None:
+def test_play_game_face_time_three_times(ft_game) -> None:
     """
     Play some unsuccessful strands along the way.
     """
-    game = StrandsGame("boards/face_time.txt")
+    assert ft_game.submit_strand(ft_game.answers()[5]) == ("makeupexam", True)
+    assert ft_game.submit_strand(ft_game.answers()[2]) == ("bronzer", True)
+    assert ft_game.submit_strand(
+    Strand(Pos(1, 1), [Step.E, Step.NW, Step.W, Step.S, Step.S])
+    ) == "Not a theme word"
 
-    assert game.submit_strand(Strand(Pos(0, 3), [])) == ("makeupexam", True)
-    assert game.submit_strand(Strand(Pos(1, 2), [])) == "Not a theme word"
+    assert ft_game.submit_strand(
+    Strand(Pos(3, 2), [Step.W, Step.N, Step.W, Step.W])
+    ) == "Not in word list"
+    assert ft_game.submit_strand(ft_game.answers()[5]) == "Already found"
+    assert len(ft_game.found_strands()) == 2
 
-    assert game.submit_strand(Strand(Pos(1, 4), [])) == ("bronzer", True)
-    assert game.submit_strand(Strand(Pos(2, 3), [])) == "Not a theme word"
-    assert game.submit_strand(Strand(Pos(3, 2), [])) == "Not a theme word"
-    assert game.submit_strand(Strand(Pos(1, 4), [])) == "Already found"
-    assert len(game.found_strands()) == 2
+    assert ft_game.submit_strand(ft_game.answers()[3]) == ("concealer", True)
+    assert ft_game.submit_strand(ft_game.answers()[4]) == ("foundation", True)
+    assert ft_game.submit_strand(
+    Strand(Pos(5, 1), [Step.N, Step.E])
+    ) == "Too short"
+    assert len(ft_game.found_strands()) == 4
 
-    assert game.submit_strand(Strand(Pos(1, 1), [])) == ("concealer", True)
-    assert game.submit_strand(Strand(Pos(6, 1), [])) == ("foundation", True)
-    assert game.submit_strand(Strand(Pos(5, 1), [])) == "Not a theme word"
-    assert len(game.found_strands()) == 3
+    assert ft_game.submit_strand(ft_game.answers()[3]) == "Already found"
+    assert ft_game.submit_strand(ft_game.answers()[0]) == ("primer", True)
+    assert ft_game.submit_strand(ft_game.answers()[1]) == ("powder", True)
 
-    assert game.submit_strand(Strand(Pos(1, 1), [])) == "Already found"
-    assert game.submit_strand(Strand(Pos(3, 3), [])) == ("primer", True)
-    assert game.submit_strand(Strand(Pos(6, 2), [])) == ("powder", True)
+    assert ft_game.game_over()
 
-    assert game.game_over()
-
-def test_play_game_face_time_more() -> None:
+def test_play_game_face_time_more(ft_game) -> None:
     """
     Trigger each of the use_hint stages.
     """
-    game = StrandsGame("boards/face_time.txt")
+    play_game_more_helper(ft_game)
 
-    assert game.use_hint() == (0, False)
-    assert game.active_hint() == (0, False)
+cyclic_strands = [
+    (Strand((0,0), Step.E, Step.S, Step.W, Step.N), True), 
+    (Strand((0,0), Step.N, Step.N, Step.E, Step.S, Step.W, Step.W), True), 
+    (Strand((0,0), Step.NE, Step.W, Step.S, Step.S, Step.NE, Step.W), True), 
+    (Strand((0,0), Step.E, Step. E, Step.W), True)
+]
+
+@pytest.mark.parametrize("strand, expected", cyclic_strands)
+def test_is_cyclic(strand, expected) -> None:
+    """
+    Check that is_cyclic returns the appropriate answer
+    for four acylic strands.
+    """
+    assert strand.is_cyclic() == expected
+
+acyclic_strands = [
+    (Strand((0,0), Step.E, Step.S, Step.E, Step.N), False), 
+    (Strand((0,0), Step.N, Step.W, Step.S, Step.E, Step.S, Step.E), False), 
+    (Strand((0,0), Step.NE, Step.S, Step.SW, Step.W), False), 
+    (Strand((0,0), Step.E, Step. E, Step.E, Step. E, Step.E), False)
+]
+
+@pytest.mark.parametrize("strand, expected", acyclic_strands)
+def test_is_not_cyclic(strand, expected) -> None:
+    """
+    Check that is_cyclic returns the appropriate answer
+    for four acylic strands.
+    """
+    assert strand.is_cyclic() == expected
+
+def test_overlapping() -> None:
+    """
+    """
+    game1 = StrandsGame("boards/i-get-around.txt")
     
-    assert game.use_hint() == (0, True)
-    assert game.use_hint() == "Use your current hint"
-    assert game.active_hint() == (0, True)
+    # First valid path for "wheelie"
+    assert game1.submit_strand(
+    Strand(Pos(5,0), [Step.E, Step.E, Step.N, Step.SE, Step.E, Step.E])
+    ) == ("wheelie", True) 
+
+    # Second valid path for "wheelie"
+    assert game1.submit_strand(
+    Strand(Pos(5,0), [Step.E, Step.NE, Step.S, Step.E, Step.E, Step.E])
+    ) == "Already found"
+
+    game2 = StrandsGame("boards/what-a-trill.txt")
     
-    assert game.submit_strand(Strand(Pos(3, 3), [])) == ("primer", True)
-    assert game.use_hint() == (1, False)
-    
-    assert game.submit_strand(Strand(Pos(1, 4), [])) == ("bronzer", True)
-    assert game.use_hint() == (1, True)
-    assert game.submit_strand(Strand(Pos(3, 2), [])) == "Not a theme word"
-    
-    assert game.submit_strand(Strand(Pos(6, 2), [])) == ("powder", True)
-    assert len(game.found_strands()) == 3
-    assert game.active_hint() == (3, False)
+    # First valid path for "sparrow"
+    assert game2.submit_strand(
+    Strand(Pos(1,3), [Step.NE, Step.E, Step.S, Step.W, Step.S, Step.W])
+    ) == ("sparrow", True)
+
+    # Second valid path for "sparrow"
+    assert game2.submit_strand(
+    Strand(Pos(1,3), [Step.NE, Step.E, Step.SW, Step.E, Step.SW, Step.W])
+    ) == "Already found"
+
+def test_load_game_directions_file() -> None:
+    """
+    Load the official face_time.txt file and check basic values.
+    """
+    game = StrandsGame("boards/directions.txt")
+
+    assert game.theme() == "Directions"
+    assert game.board().num_rows() == 7
+    assert game.board().num_cols() == 4
+    assert len(game.answers()) == 5
+
+def test_load_game_directions_variations() -> None:
+    """
+    Load the same game using a list of strings instead of a file,
+    and check that it still works.
+    """
+    with open("boards/directions.txt") as f:
+        lines = f.readlines()
+
+    game = StrandsGame(lines)
+
+    assert game.theme() == "Directions"
+    assert game.board().num_rows() == 7
+    assert game.board().num_cols() == 4
+    assert len(game.answers()) == 5
+
+invalid_boards_directions = [
+    (
+        # Irregular grid (one row has only 3 letters instead of 4) ⇒ ValueError
+        [
+            '"Directions"',
+            "",
+            "E A S T",
+            "T S E W",
+            "S H D",        # <-- too short
+            "O T I E",
+            "U R I C",
+            "T O O T",
+            "H N S N",
+            "",
+            # answers (would be valid if the grid were okay)
+            "east 1 1 e e e",
+            "west 2 4 w w w",
+            "south 3 1 s s s s",
+            "north 7 2 n n n n",
+            "directions 3 3 s ne s s s nw s se w",
+        ],
+        ValueError
+    ),
+    (
+        # Missing any answer lines ⇒ IndexError
+        [
+            '"Directions"',
+            "",
+            "E A S T",
+            "T S E W",
+            "S H D R",
+            "O T I E",
+            "U R I C",
+            "T O O T",
+            "H N S N",
+            "",
+            "",   # blank line for answers, but no answers follow
+        ],
+        IndexError
+    ),
+]
+
+@pytest.mark.parametrize("board, error", invalid_boards_directions)
+def test_load_game_directions_invalid(board, error) -> None:
+    """
+    Try loading invalid 'Directions' game files and
+    confirm the expected errors are raised.
+    """
+    with pytest.raises(error):
+        StrandsGame(board)
+
+@pytest.fixture
+def dir_game():
+    return StrandsGame("boards/directions.txt")
+
+def test_play_game_directions_once(dir_game) -> None:
+    """
+    Play all four answer strands one after another,
+    in the order in which they appear in the "directions"
+    game file.
+    """
+    play_game_once_helper(dir_game)
+
+def test_play_game_directions_twice(dir_game) -> None:
+    """
+    Submit same answers as previous test but out of order.
+    """
+    play_game_twice_helper(dir_game)
+
+
+def test_play_game_face_time_three_times(dir_game) -> None:
+    """
+    Play some unsuccessful strands along the way.
+    """
+    assert dir_game.submit_strand(dir_game.answers()[4]) == ("directions", True)
+    assert dir_game.submit_strand(dir_game.answers()[2]) == ("south", True)
+    assert dir_game.submit_strand(
+    Strand(Pos(2, 0), [Step.S, Step.S, Step.E])
+    ) == "Not a theme word"
+
+    assert ft_game.submit_strand(
+    Strand(Pos(1, 1), [Step.S, Step.SW, Step.NE, Step.W])
+    ) == "Not in word list"
+    assert dir_game.submit_strand(dir_game.answers()[5]) == "Already found"
+    assert len(dir_game.found_strands()) == 2
+
+    assert dir_game.submit_strand(dir_game.answers()[3]) == ("north", True)
+    assert dir_game.submit_strand(dir_game.answers()[1]) == ("west", True)
+    assert dir_game.submit_strand(
+    Strand(Pos(4, 1), [Step.E, Step.SW])
+    ) == "Too short"
+    assert len(dir_game.found_strands()) == 4
+
+    assert dir_game.submit_strand(dir_game.answers()[3]) == "Already found"
+    assert dir_game.submit_strand(dir_game.answers()[0]) == ("primer", True)
+    assert dir_game.submit_strand(dir_game.answers()[1]) == ("powder", True)
+
+    assert dir_game.game_over()
+
+def test_play_game_directions_more(dir_game) -> None:
+    """
+    Trigger each of the use_hint stages with the
+    "directions" game file.
+    """
+    play_game_more_helper(dir_game)
+
+
+BOARD_DIR = os.path.join("CS 142 Project", "boards")
+
+board_files = [
+    os.path.join(BOARD_DIR, fname)
+    for fname in os.listdir(BOARD_DIR)
+    if fname.endswith(".txt")
+]
+
+@pytest.mark.parametrize("filename", board_files)
+def test_valid_game_files(filename) -> None:
+    """
+    Test the validity of each game file in the boards/
+    directory.
+    """
+    game = StrandsGame(filename)
