@@ -2,6 +2,7 @@
 Game logic for Milestone 2:
 Pos, Strand, Board, StrandsGame
 """
+import os
 from typing import TypeAlias
 from base import PosBase, StrandBase, BoardBase, StrandsGameBase, Step
 
@@ -112,20 +113,15 @@ class Strand(StrandBase):
         return False
 
     def is_folded(self) -> bool:
-        """
-        See ABC docstring.
-        """
-        connection_spots = []
-
-        for i, elt in enumerate(self.positions()[:-1]):
-            r1 = elt.r
-            r2 = self.positions[i+1].r
-            c1 = elt.c
-            c2 = self.positions[i+1].c
-            avg_coord = ((r2 + r1) / 2, (c1+c2) / 2)
-            connection_spots.append(avg_coord)
+        positions = self.positions()
         
-        return len(connection_spots) != len(set(connection_spots))
+        mids: list[tuple[float,float]] = []
+        
+        for i in range(len(positions)-1):
+            a, b = positions[i], positions[i+1]
+            mids.append(((a.r + b.r)/2, (a.c + b.c)/2))
+        
+        return len(mids) != len(set(mids))
 
 
 ######################################################################
@@ -262,7 +258,7 @@ class StrandsGame(StrandsGameBase):
         elif isinstance(game_file, list):
             raw_lines = [line.rstrip('\n') for line in game_file]
         else:
-            raise TypeError("game_file must be a filename (str) or list[str]")
+            raise ValueError("game_file must be a filename (str) or list[str]")
 
         lines: list[str] = []
         for ln in raw_lines:
@@ -281,6 +277,9 @@ class StrandsGame(StrandsGameBase):
         board_lines: list[str] = lines[(first_blank + 1):second_blank]
         answer_lines: list[str] = [ln for ln in lines[(second_blank + 1):] if ln]
 
+        if not answer_lines:
+            raise ValueError("No answers provided")
+        
         self._theme: str = theme_lines[0]
 
         grid: list[list[str]] = []
@@ -288,7 +287,7 @@ class StrandsGame(StrandsGameBase):
         for row in board_lines:
             letters: list[str] = row.split()
             if len(letters) != len(board_lines[0].split()):
-                raise TypeError("Invalid Strands Board (not rectangular)")
+                raise ValueError("Invalid Strands Board (not rectangular)")
             grid.append([letter.lower() for letter in letters])
 
         self._board: Board = Board(grid)
@@ -305,6 +304,17 @@ class StrandsGame(StrandsGameBase):
 
             start: Pos = Pos(r, c)
             self._answers.append((word, Strand(start, steps)))
+
+        project_root = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), os.pardir)
+        )
+        
+        dict_path = os.path.join(project_root, "assets", "web2.txt")
+        
+        with open(dict_path, "r") as dict_f:
+            self._dictionary: set[str] = {
+                w.strip().lower() for w in dict_f if w.strip()
+            }
 
         self._found: list[StrandBase] = []
         self._hint_threshold: int = hint_threshold
@@ -419,21 +429,29 @@ class StrandsGame(StrandsGameBase):
             if the strand corresponds to a string that
             is not a valid dictionary word.
         """
-        if len(strand.positions()) < 4:
+        positions = strand.positions()
+        if len(positions) < 4:
             return "Too short"
 
-        for idx, (word, answer) in enumerate(self._answers):
-            if strand.start == answer.start:
-                if answer in self._found:
-                    return "Already found"
+        word = self._board.evaluate_strand(strand).lower()
 
-                self._found.append(answer)
+        theme_set = {w for w, _ in self._answers}
+        if word in theme_set:
+            for idx, (w, answer_strand) in enumerate(self._answers):
+                if w == word:
+                    if answer_strand in self._found:
+                        return "Already found"
+                    
+                    self._found.append(answer_strand)
+                    if self._active_hint and self._active_hint[0] == idx:
+                        self._active_hint = None
+                    
+                    return (w, True)
+                
+        if word not in self._dictionary:
+            return "Not in word list"
 
-                if self._active_hint is not None and self._active_hint[0] == idx:
-                    self._active_hint = None
-                return (word, True)
-
-        return "Not a theme word"
+        return (word, False)
 
     def use_hint(self) -> tuple[int, bool] | str:
         """

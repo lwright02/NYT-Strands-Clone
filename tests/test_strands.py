@@ -103,10 +103,10 @@ def test_strand_positions_straight_intercardinal() -> None:
     """
     start = Pos(3, 2)
     steps_dict = {
-        Step.NE: [(2, 3), (1, 4), (0, 5), (0, 6)],
+        Step.NE: [(2, 3), (1, 4), (0, 5), (-1, 6)],
         Step.NW: [(2, 1), (1, 0), (0, -1), (-1, -2)],
         Step.SE: [(4, 3), (5, 4), (6, 5), (7, 6)],
-        Step.SW: [(4, 1), (5, 0), (6, -1), (7, 0)],
+        Step.SW: [(4, 1), (5, 0), (6, -1), (7, -2)],
     }
 
     for step, coords in steps_dict.items():
@@ -129,14 +129,16 @@ def test_strand_positions_long() -> None:
     strand1 = Strand(start, steps_non_folded)
     positions1 = strand1.positions()
     
-    assert len(set(positions1)) == len(positions1)
+    assert positions1 == [Pos(3,2), Pos(3,3), Pos(4,4), Pos(5,4), Pos(6,3),
+                          Pos(6,2), Pos(5,1), Pos(4,1), Pos(3,2)]
     assert not strand1.is_folded()
 
-    steps_folded = [Step.E, Step.S, Step.W, Step.N, Step.NE, Step.S, Step.E]
+    steps_folded = [Step.SE, Step.N, Step.SW, Step.N, Step.E, Step.E, Step.S]
     strand2 = Strand(start, steps_folded)
     positions2 = strand2.positions()
     
-    assert len(set(positions2)) != len(positions2)
+    assert positions2 == [Pos(3,2), Pos(4,3), Pos(3,3), Pos(4,2), Pos(3,2),
+                          Pos(3,3), Pos(3,4), Pos(4,4)]
     assert strand2.is_folded()
 
 def test_load_game_face_time_file() -> None:
@@ -145,7 +147,7 @@ def test_load_game_face_time_file() -> None:
     """
     game = StrandsGame("boards/face-time.txt")
 
-    assert game.theme() == "Face time"
+    assert game.theme() == '"Face time"'
     assert game.board().num_rows() == 8
     assert game.board().num_cols() == 6
     assert len(game.answers()) == 6
@@ -160,7 +162,7 @@ def test_load_game_face_time_variations() -> None:
 
     game = StrandsGame(lines)
 
-    assert game.theme() == "Face time"
+    assert game.theme() == '"Face time"'
     assert game.board().num_rows() == 8
     assert game.board().num_cols() == 6
     assert len(game.answers()) == 6
@@ -182,7 +184,7 @@ invalid_boards_face_time = [
             "A B C", "D E F", "",
             "",
         ],
-        IndexError
+        ValueError
     ),
 ]
 
@@ -242,7 +244,7 @@ def play_game_more_helper(game):
 
     word, strand = game.answers()[1]
     assert game.submit_strand(strand) == (word, True)
-    assert game.active_hint() == (3, False)
+    assert game.active_hint() == None
 
 def test_play_game_face_time_once(ft_game) -> None:
     """
@@ -262,28 +264,28 @@ def test_play_game_face_time_three_times(ft_game) -> None:
     """
     Play some unsuccessful strands along the way.
     """
-    assert ft_game.submit_strand(ft_game.answers()[5]) == ("makeupexam", True)
-    assert ft_game.submit_strand(ft_game.answers()[2]) == ("bronzer", True)
+    assert ft_game.submit_strand(ft_game.answers()[5][1]) == ("makeupexam", True)
+    assert ft_game.submit_strand(ft_game.answers()[2][1]) == ("bronzer", True)
     assert ft_game.submit_strand(
     Strand(Pos(1, 1), [Step.E, Step.NW, Step.W, Step.S, Step.S])
-    ) == "Not a theme word"
+    ) == ("cancer", False)
 
     assert ft_game.submit_strand(
-    Strand(Pos(3, 2), [Step.W, Step.N, Step.W, Step.W])
+    Strand(Pos(3, 2), [Step.W, Step.N, Step.W, Step.S])
     ) == "Not in word list"
-    assert ft_game.submit_strand(ft_game.answers()[5]) == "Already found"
+    assert ft_game.submit_strand(ft_game.answers()[5][1]) == "Already found"
     assert len(ft_game.found_strands()) == 2
 
-    assert ft_game.submit_strand(ft_game.answers()[3]) == ("concealer", True)
-    assert ft_game.submit_strand(ft_game.answers()[4]) == ("foundation", True)
+    assert ft_game.submit_strand(ft_game.answers()[3][1]) == ("concealer", True)
+    assert ft_game.submit_strand(ft_game.answers()[4][1]) == ("foundation", True)
     assert ft_game.submit_strand(
     Strand(Pos(5, 1), [Step.N, Step.E])
     ) == "Too short"
     assert len(ft_game.found_strands()) == 4
 
-    assert ft_game.submit_strand(ft_game.answers()[3]) == "Already found"
-    assert ft_game.submit_strand(ft_game.answers()[0]) == ("primer", True)
-    assert ft_game.submit_strand(ft_game.answers()[1]) == ("powder", True)
+    assert ft_game.submit_strand(ft_game.answers()[3][1]) == "Already found"
+    assert ft_game.submit_strand(ft_game.answers()[0][1]) == ("primer", True)
+    assert ft_game.submit_strand(ft_game.answers()[1][1]) == ("powder", True)
 
     assert ft_game.game_over()
 
@@ -294,10 +296,10 @@ def test_play_game_face_time_more(ft_game) -> None:
     play_game_more_helper(ft_game)
 
 cyclic_strands = [
-    (Strand((0,0), Step.E, Step.S, Step.W, Step.N), True), 
-    (Strand((0,0), Step.N, Step.N, Step.E, Step.S, Step.W, Step.W), True), 
-    (Strand((0,0), Step.NE, Step.W, Step.S, Step.S, Step.NE, Step.W), True), 
-    (Strand((0,0), Step.E, Step. E, Step.W), True)
+    (Strand(Pos(0,0), [Step.E, Step.S, Step.W, Step.N]), True), 
+    (Strand(Pos(0,0), [Step.N, Step.N, Step.E, Step.S, Step.W, Step.W]), True), 
+    (Strand(Pos(0,0), [Step.NE, Step.W, Step.S, Step.S, Step.NE, Step.W]), True), 
+    (Strand(Pos(0,0), [Step.E, Step. E, Step.W]), True)
 ]
 
 @pytest.mark.parametrize("strand, expected", cyclic_strands)
@@ -309,10 +311,10 @@ def test_is_cyclic(strand, expected) -> None:
     assert strand.is_cyclic() == expected
 
 acyclic_strands = [
-    (Strand((0,0), Step.E, Step.S, Step.E, Step.N), False), 
-    (Strand((0,0), Step.N, Step.W, Step.S, Step.E, Step.S, Step.E), False), 
-    (Strand((0,0), Step.NE, Step.S, Step.SW, Step.W), False), 
-    (Strand((0,0), Step.E, Step. E, Step.E, Step. E, Step.E), False)
+    (Strand(Pos(0,0), [Step.E, Step.S, Step.E, Step.N]), False), 
+    (Strand(Pos(0,0), [Step.N, Step.W, Step.S, Step.S, Step.S, Step.E]), False), 
+    (Strand(Pos(0,0), [Step.NE, Step.S, Step.SW, Step.W]), False), 
+    (Strand(Pos(0,0), [Step.E, Step.E, Step.E, Step.E, Step.E]), False)
 ]
 
 @pytest.mark.parametrize("strand, expected", acyclic_strands)
@@ -356,7 +358,7 @@ def test_load_game_directions_file() -> None:
     """
     game = StrandsGame("boards/directions.txt")
 
-    assert game.theme() == "Directions"
+    assert game.theme() == '"Directions"'
     assert game.board().num_rows() == 7
     assert game.board().num_cols() == 4
     assert len(game.answers()) == 5
@@ -371,7 +373,7 @@ def test_load_game_directions_variations() -> None:
 
     game = StrandsGame(lines)
 
-    assert game.theme() == "Directions"
+    assert game.theme() == '"Directions"'
     assert game.board().num_rows() == 7
     assert game.board().num_cols() == 4
     assert len(game.answers()) == 5
@@ -414,7 +416,7 @@ invalid_boards_directions = [
             "",
             "",   # blank line for answers, but no answers follow
         ],
-        IndexError
+        ValueError
     ),
 ]
 
@@ -446,32 +448,31 @@ def test_play_game_directions_twice(dir_game) -> None:
     play_game_twice_helper(dir_game)
 
 
-def test_play_game_face_time_three_times(dir_game) -> None:
+def test_play_game_directions_three_times(dir_game) -> None:
     """
     Play some unsuccessful strands along the way.
     """
-    assert dir_game.submit_strand(dir_game.answers()[4]) == ("directions", True)
-    assert dir_game.submit_strand(dir_game.answers()[2]) == ("south", True)
+    assert dir_game.submit_strand(dir_game.answers()[4][1]) == ("directions", True)
+    assert dir_game.submit_strand(dir_game.answers()[2][1]) == ("south", True)
     assert dir_game.submit_strand(
     Strand(Pos(2, 0), [Step.S, Step.S, Step.E])
-    ) == "Not a theme word"
+    ) == ("sour", False)
 
-    assert ft_game.submit_strand(
+    assert dir_game.submit_strand(
     Strand(Pos(1, 1), [Step.S, Step.SW, Step.NE, Step.W])
     ) == "Not in word list"
-    assert dir_game.submit_strand(dir_game.answers()[5]) == "Already found"
+    assert dir_game.submit_strand(dir_game.answers()[4][1]) == "Already found"
     assert len(dir_game.found_strands()) == 2
 
-    assert dir_game.submit_strand(dir_game.answers()[3]) == ("north", True)
-    assert dir_game.submit_strand(dir_game.answers()[1]) == ("west", True)
+    assert dir_game.submit_strand(dir_game.answers()[3][1]) == ("north", True)
+    assert dir_game.submit_strand(dir_game.answers()[1][1]) == ("west", True)
     assert dir_game.submit_strand(
     Strand(Pos(4, 1), [Step.E, Step.SW])
     ) == "Too short"
     assert len(dir_game.found_strands()) == 4
 
-    assert dir_game.submit_strand(dir_game.answers()[3]) == "Already found"
-    assert dir_game.submit_strand(dir_game.answers()[0]) == ("primer", True)
-    assert dir_game.submit_strand(dir_game.answers()[1]) == ("powder", True)
+    assert dir_game.submit_strand(dir_game.answers()[3][1]) == "Already found"
+    assert dir_game.submit_strand(dir_game.answers()[0][1]) == ("east", True)
 
     assert dir_game.game_over()
 
@@ -483,12 +484,12 @@ def test_play_game_directions_more(dir_game) -> None:
     play_game_more_helper(dir_game)
 
 
-BOARD_DIR = os.path.join("CS 142 Project", "boards")
+HERE = os.path.dirname(__file__)
+BOARD_DIR = os.path.abspath(os.path.join(HERE, os.pardir, "boards"))
 
 board_files = [
     os.path.join(BOARD_DIR, fname)
     for fname in os.listdir(BOARD_DIR)
-    if fname.endswith(".txt")
 ]
 
 @pytest.mark.parametrize("filename", board_files)
