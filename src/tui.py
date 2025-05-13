@@ -26,8 +26,8 @@ def getch() -> str:
         termios.tcsetattr(fdInput, termios.TCSADRAIN, termAttr)
 
 
-def update_display(strands: StrandsGameBase, 
-                   connections: list[StrandBase]) -> None:
+def update_display(strands: StrandsGameBase, connections: list[StrandBase], 
+                   current_pos: Pos, selected: list[Pos]) -> None:
     """
     Given all the words that have been found, this function will print what
     the board looks like at a given time. The found words are highlighted, and
@@ -40,6 +40,8 @@ def update_display(strands: StrandsGameBase,
     bold: str = "\033[1m"
     reset: str = "\033[0m"
     blue: str = "\033[34m"
+    green: str = "\033[32m"
+    red: str = "\033[31m"
 
     horiz: set[tuple[int, int]] = set()
     vert: set[tuple[int, int]] = set()
@@ -70,6 +72,34 @@ def update_display(strands: StrandsGameBase,
                 else:
                     diag_slash.add((min(r1, r2), min(c1, c2)))
 
+    selected_horiz: set[tuple[int, int]] = set()
+    selected_vert: set[tuple[int, int]] = set()
+    selected_diag_slash: set[tuple[int, int]] = set()
+    selected_diag_backslash: set[tuple[int, int]] = set()
+    for i, _ in selected[:-1]:
+        p1: PosBase = selected[i]
+        p2: PosBase = selected[i+1]
+        r1: int
+        c1: int
+        r1, c1 = p1.r, p1.c
+        r2: int
+        c2: int
+        r2, c2 = p2.r, p2.c
+        dr: int
+        dc: int
+        dr = r2 - r1
+        dc = c2 - c1
+        if dr == 0:
+            selected_horiz.add((r1, min(c1, c2)))
+        elif dc == 0:
+            selected_vert.add((min(r1, r2), c1))
+        else:
+            if (dr, dc) == (1, 1) or (dr, dc) == (-1, -1):
+                selected_diag_backslash.add((min(r1, r2), min(c1, c2)))
+            else:
+                selected_diag_slash.add((min(r1, r2), min(c1, c2)))
+
+
     found_pos: list[tuple[int, int]] = []
     for strand in connections:
         for p in strand.positions():
@@ -92,13 +122,19 @@ def update_display(strands: StrandsGameBase,
         for c in range(columns):
             letter = board.get_letter(Pos(r, c))
             display: str
-            if (r, c) in found_pos:
+            if (r, c) == current_pos:
+                display = bold + red + letter + reset
+            elif (r, c) in found_pos:
                 display = bold + blue + letter + reset
+            elif(r, c) in selected:
+                display = bold + green + letter + reset
             else:
                 display = letter
             if c < columns - 1:
                 if (r, c) in horiz:
-                    print(display + " - ", end = "")
+                    print(display + bold + blue + " - " + reset, end = "")
+                elif (r, c) in selected_horiz:
+                    print(display + bold + green + " - " + reset, end = "")
                 else:
                     print(display + "   ", end = "")
             else:
@@ -113,15 +149,15 @@ def update_display(strands: StrandsGameBase,
                 cc: int
                 rr, cc, = coord
                 if rr == r:
-                    between_rows[cc * 4] = "|"
+                    between_rows[cc * 4] = bold + blue + "|" + reset
             for coord in diag_slash:
                 rr, cc = coord
                 if rr == r:
-                    between_rows[cc * 4 + 2] = "/"
+                    between_rows[cc * 4 + 2] = bold + blue + "/" + reset
             for coord in diag_backslash:
                 rr, cc = coord
                 if rr == r:
-                    between_rows[cc * 4 + 2] = "\\"
+                    between_rows[cc * 4 + 2] = bold + blue + "\\" + reset
         print("LL " + "".join(between_rows) + "RR")
 
     found_count = len(connections)
@@ -151,4 +187,9 @@ def play_game() -> None:
     update_display(game, game.found_strands())
 
 if __name__ == "__main__":
-    play_game()
+
+    if sys.argv[2] == "play":
+        play_game()
+    elif sys.argv[2] == "show":
+        strand = StrandBase(sys.argv[3])
+        update_display(strand, conn)
