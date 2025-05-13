@@ -98,7 +98,7 @@ def update_display(strands: StrandsGameBase,
                 display = letter
             if c < columns - 1:
                 if (r, c) in horiz:
-                    print(display + " - ", end = "")
+                    print(display + bold + blue + " - " + reset, end = "")
                 else:
                     print(display + "   ", end = "")
             else:
@@ -113,15 +113,15 @@ def update_display(strands: StrandsGameBase,
                 cc: int
                 rr, cc, = coord
                 if rr == r:
-                    between_rows[cc * 4] = "|"
+                    between_rows[cc * 4] = bold + blue + "|" + reset
             for coord in diag_slash:
                 rr, cc = coord
                 if rr == r:
-                    between_rows[cc * 4 + 2] = "/"
+                    between_rows[cc * 4 + 2] = bold + blue + "/" + reset
             for coord in diag_backslash:
                 rr, cc = coord
                 if rr == r:
-                    between_rows[cc * 4 + 2] = "\\"
+                    between_rows[cc * 4 + 2] = bold + blue + "\\" + reset
         print("LL " + "".join(between_rows) + "RR")
 
     found_count = len(connections)
