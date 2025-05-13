@@ -32,7 +32,8 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
     Given all the words that have been found, this function will print what
     the board looks like at a given time. The found words are highlighted, and
     there is a tracker of how many words you've found and how many hints you've
-    used at the bottom of the game. 
+    used at the bottom of the game. There will also be highlighted text and 
+    connections to indicate the characters you currently have selected
     """
     board: BoardBase = strands.board()
     rows: int = board.num_rows()
@@ -158,6 +159,20 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
                 rr, cc = coord
                 if rr == r:
                     between_rows[cc * 4 + 2] = bold + blue + "\\" + reset
+            for coord in selected_vert:
+                rr: int
+                cc: int
+                rr, cc, = coord
+                if rr == r:
+                    between_rows[cc * 4] = bold + green + "|" + reset
+            for coord in selected_diag_slash:
+                rr, cc = coord
+                if rr == r:
+                    between_rows[cc * 4 + 2] = bold + green + "/" + reset
+            for coord in selected_diag_backslash:
+                rr, cc = coord
+                if rr == r:
+                    between_rows[cc * 4 + 2] = bold + green + "\\" + reset
         print("LL " + "".join(between_rows) + "RR")
 
     found_count = len(connections)
