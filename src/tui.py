@@ -5,8 +5,7 @@ TUI for Strands
 import sys
 import termios
 import tty
-from fakes import Pos, StrandFake, BoardFake, StrandsGameFake
-from stubs import PosStub, StrandStub, BoardStub, StrandsGameStub
+from fakes import Pos, StrandFake, BoardFake, StrandsGameFake, STEPS
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
 
 
@@ -77,7 +76,7 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
     selected_vert: set[tuple[int, int]] = set()
     selected_diag_slash: set[tuple[int, int]] = set()
     selected_diag_backslash: set[tuple[int, int]] = set()
-    for i, _ in selected[:-1]:
+    for i, _ in enumerate(selected[:-1]):
         p1: PosBase = selected[i]
         p2: PosBase = selected[i+1]
         r1: int
@@ -123,19 +122,19 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
         for c in range(columns):
             letter = board.get_letter(Pos(r, c))
             display: str
-            if (r, c) == current_pos:
+            if (r, c) == (current_pos.r, current_pos.c):
                 display = bold + red + letter + reset
+            elif Pos(r, c) in selected:
+                display = bold + green + letter + reset
             elif (r, c) in found_pos:
                 display = bold + blue + letter + reset
-            elif(r, c) in selected:
-                display = bold + green + letter + reset
             else:
                 display = letter
             if c < columns - 1:
-                if (r, c) in horiz:
-                    print(display + bold + blue + " - " + reset, end = "")
-                elif (r, c) in selected_horiz:
+                if (r, c) in selected_horiz:
                     print(display + bold + green + " - " + reset, end = "")
+                elif (r, c) in horiz:
+                    print(display + bold + blue + " - " + reset, end = "")
                 else:
                     print(display + "   ", end = "")
             else:
@@ -145,20 +144,6 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
         for _ in range(4 * columns - 2):
             between_rows.append(" ")
         if r < rows - 1:
-            for coord in vert:
-                rr: int
-                cc: int
-                rr, cc, = coord
-                if rr == r:
-                    between_rows[cc * 4] = bold + blue + "|" + reset
-            for coord in diag_slash:
-                rr, cc = coord
-                if rr == r:
-                    between_rows[cc * 4 + 2] = bold + blue + "/" + reset
-            for coord in diag_backslash:
-                rr, cc = coord
-                if rr == r:
-                    between_rows[cc * 4 + 2] = bold + blue + "\\" + reset
             for coord in selected_vert:
                 rr: int
                 cc: int
@@ -173,6 +158,20 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
                 rr, cc = coord
                 if rr == r:
                     between_rows[cc * 4 + 2] = bold + green + "\\" + reset
+            for coord in vert:
+                rr: int
+                cc: int
+                rr, cc, = coord
+                if rr == r:
+                    between_rows[cc * 4] = bold + blue + "|" + reset
+            for coord in diag_slash:
+                rr, cc = coord
+                if rr == r:
+                    between_rows[cc * 4 + 2] = bold + blue + "/" + reset
+            for coord in diag_backslash:
+                rr, cc = coord
+                if rr == r:
+                    between_rows[cc * 4 + 2] = bold + blue + "\\" + reset
         print("LL " + "".join(between_rows) + "RR")
 
     found_count = len(connections)
@@ -184,27 +183,73 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
     print("BOTTOM" + ("-" * ((4 * columns) - 3)))
 
 
-def play_game() -> None:
+def play_game(game_file) -> None:
     """
     Allows for the game to be run in the terminal.
     """
-    game: StrandsGameBase = StrandsGameStub("filename", hint_threshold = 3)
+    game: StrandsGameBase = StrandsGameFake(game_file, hint_threshold = 3)
+    current_pos = Pos(0, 0)
+    selected = [current_pos]
+    board: BoardBase = game.board()
+    rows: int = board.num_rows()
+    columns: int = board.num_cols()
 
     while not game.game_over():
-        update_display(game, game.found_strands())
+
+        update_display(game, game.found_strands(), current_pos, selected)
         key = getch()
         if key == "q":
             break
-        if key == "\r":
-            _, next_strand = game.answers()[len(game.found_strands())]
-            game.submit_strand(next_strand)
-    
-    update_display(game, game.found_strands())
+
+        elif key in ["u", "d", "l", "r"]:
+            dr, dc = {"u":(-1,0), "d":(1,0), "l":(0,-1), "r":(0,1)}[key]
+            new_r = current_pos.r + dr
+            new_c = current_pos.c + dc
+            if 0 <= new_r < rows and 0 <= new_c < columns:
+                current_pos = Pos(new_r, new_c)
+                selected.append(current_pos)
+
+        elif key == "\x1b":
+            selected = [current_pos]
+
+        elif key == "\r":
+            steps_enum = []
+            for i, _ in enumerate(selected[:-1]):
+                p1 = selected[i]
+                p2 = selected[i+1]
+                dr = p2.r - p1.r
+                dc = p2.c - p1.c
+                if (dr, dc) == (-1, 0):
+                    steps_enum.append(Step.N)
+                elif (dr, dc) == (1, 0):
+                    steps_enum.append(Step.S)
+                elif (dr, dc) == (0, 1):
+                    steps_enum.append(Step.E)
+                elif (dr, dc) == (0, -1):
+                    steps_enum.append(Step.W)
+                elif (dr, dc) == (-1, 1):
+                    steps_enum.append(Step.NE)
+                elif (dr, dc) == (-1, -1):
+                    steps_enum.append(Step.NW)
+                elif (dr, dc) == (1, 1):
+                    steps_enum.append(Step.SE)
+                elif (dr, dc) == (1, -1):
+                    steps_enum.append(Step.SW)
+            game.submit_strand(StrandFake(selected[0], steps_enum))
+            selected = [current_pos]
+        update_display(game, game.found_strands(), current_pos, selected)
+
 
 if __name__ == "__main__":
 
-    if sys.argv[2] == "play":
-        play_game()
-    elif sys.argv[2] == "show":
-        strand = StrandBase(sys.argv[3])
-        update_display(strand, conn)
+    if sys.argv[1] == "play":
+        game_file = sys.argv[2]
+        play_game(game_file)
+    
+    elif sys.argv[1] == "show":
+        game_file = sys.argv[2]
+        game = StrandsGameFake(game_file, hint_threshold=3)
+        connections = []
+        for _, strand in game.answers():
+            connections.append(strand)
+        update_display(game, connections, Pos(0, 0), [])
