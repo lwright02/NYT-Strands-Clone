@@ -8,21 +8,29 @@ import tty
 from fakes import Pos, StrandFake, BoardFake, StrandsGameFake, STEPS
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
 
+key_Enter = 13
+key_Esc = 27
+key_Up = "\033[A"
+key_Dn = "\033[B"
+key_Rt = "\033[C"
+key_Lt = "\033[D"
 
 fdInput = sys.stdin.fileno()
 termAttr = termios.tcgetattr(0)
 
-def getch() -> str:
+def getch():
     """
-    Slightly modified version of getch function from stackexchange link posted
-    on canvas.
+    getch function from Canvas page
     """
-    try:
-        tty.setraw(fdInput)
-        ch = sys.stdin.buffer.read(1)
-        return ch.decode(sys.stdin.encoding or "utf-8", errors="ignore")
-    finally:
-        termios.tcsetattr(fdInput, termios.TCSADRAIN, termAttr)
+    tty.setraw(fdInput)
+    ch = sys.stdin.buffer.raw.read(4).decode(sys.stdin.encoding)
+    if len(ch) == 1:
+        if ord(ch) < 32 or ord(ch) > 126:
+            ch = ord(ch)
+    elif ord(ch[0]) == 27:
+        ch = "\033" + ch[1:]
+    termios.tcsetattr(fdInput, termios.TCSADRAIN, termAttr)
+    return ch
 
 
 def update_display(strands: StrandsGameBase, connections: list[StrandBase], 
@@ -42,6 +50,7 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
     blue: str = "\033[34m"
     green: str = "\033[32m"
     red: str = "\033[31m"
+    pink: str = "\033[35m"
 
     horiz: set[tuple[int, int]] = set()
     vert: set[tuple[int, int]] = set()
@@ -99,6 +108,21 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
             else:
                 selected_diag_slash.add((min(r1, r2), min(c1, c2)))
 
+    hint = strands.active_hint()
+    hint_pos: set[tuple[int, int]] = set()
+    hint_end: set[tuple[int, int]] = set()
+    if hint is not None:
+        idx, show_end = hint
+        _, hstrand = strands.answers()[idx]
+        hpos = hstrand.positions()
+        if show_end:
+            for p in hpos:
+                hint_pos.add((p.r, p.c))
+            hint_end.add((hpos[0].r, hpos[0].c))
+            hint_end.add((hpos[-1].r, hpos[-1].c))
+        else:
+            for p in hpos[1:-1]:
+                hint_pos.add((p.r, p.c))
 
     found_pos: list[tuple[int, int]] = []
     for strand in connections:
@@ -126,6 +150,11 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
                 display = bold + red + letter + reset
             elif Pos(r, c) in selected:
                 display = bold + green + letter + reset
+            elif (r, c) in hint_pos:
+                if (r, c) in hint_end:
+                    display = bold + pink + letter + reset
+                else:
+                    display = pink + letter + reset
             elif (r, c) in found_pos:
                 display = bold + blue + letter + reset
             else:
@@ -176,8 +205,11 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
 
     found_count = len(connections)
     total = len(strands.answers())
-    footer_text = f"Found {found_count}/{total}  Hint 0"
-    print("LL " + footer_text + (" " * ((4 * columns) - 19)) + "RR")
+    hint_meter = strands.hint_meter()
+    hint_threshold = strands.hint_threshold()
+    footer_text = f"Found {found_count}/{total}  Hint {hint_meter}/{hint_threshold}"
+    print("LL " + footer_text + 
+          (" " * ((4 * columns) - (len(footer_text) + 2))) + "RR")
     print("LL" + (" " * ((4 * columns) - 1)) + "RR")
     print("BOTTOM" + ("-" * ((4 * columns) - 3)))
     print("BOTTOM" + ("-" * ((4 * columns) - 3)))
@@ -198,21 +230,30 @@ def play_game(game_file) -> None:
 
         update_display(game, game.found_strands(), current_pos, selected)
         key = getch()
+        key_dict = {"1": (-1, -1), "2": (-1, 0), "3": (-1, 1),
+                    "4": (0, -1), "6": (0, 1),
+                    "7": (1, -1), "8": (1, 0), "9": (1, 1)}
         if key == "q":
             break
 
-        elif key in ["u", "d", "l", "r"]:
-            dr, dc = {"u":(-1,0), "d":(1,0), "l":(0,-1), "r":(0,1)}[key]
+        elif key in key_dict:
+            dr, dc = key_dict[key]
             new_r = current_pos.r + dr
             new_c = current_pos.c + dc
             if 0 <= new_r < rows and 0 <= new_c < columns:
                 current_pos = Pos(new_r, new_c)
                 selected.append(current_pos)
 
-        elif key == "\x1b":
+        elif key == 27:
             selected = [current_pos]
 
-        elif key == "\r":
+        elif key == "h":
+            if game._hint_meter < game.hint_threshold():
+                game._hint_meter += 1
+                game.use_hint()
+            continue
+
+        elif key == 13 or key == "5":
             steps_enum = []
             for i, _ in enumerate(selected[:-1]):
                 p1 = selected[i]
