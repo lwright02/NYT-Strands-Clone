@@ -2,9 +2,9 @@
 TUI for Strands
 """
 
-# Remark: The getch function is throwing a mypy error, but I went to my TA 
-# to ask for help in discussion section, and he tried to help but we could not
-# resolve the issue. He said it was fine if i submited as is with the mypy 
+# Remark: The getch function is giving us a mypy error. I went to my TA 
+# to ask for help in discussion section, and he tried to help, but we could not
+# resolve the issue. He said it was fine if I submited as is with the mypy 
 # issues. 
 
 import sys
