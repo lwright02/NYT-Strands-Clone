@@ -8,17 +8,17 @@ import tty
 from fakes import Pos, StrandFake, BoardFake, StrandsGameFake, STEPS
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
 
-key_Enter = 13
-key_Esc = 27
-key_Up = "\033[A"
-key_Dn = "\033[B"
-key_Rt = "\033[C"
-key_Lt = "\033[D"
+key_Enter: int = 13
+key_Esc: int = 27
+key_Up: str = "\033[A"
+key_Dn: str = "\033[B"
+key_Rt: str = "\033[C"
+key_Lt: str = "\033[D"
 
-fdInput = sys.stdin.fileno()
+fdInput: int = sys.stdin.fileno()
 termAttr = termios.tcgetattr(0)
 
-def getch():
+def getch() -> str | int:
     """
     getch function from Canvas page
     """
@@ -86,34 +86,36 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
     selected_diag_slash: set[tuple[int, int]] = set()
     selected_diag_backslash: set[tuple[int, int]] = set()
     for i, _ in enumerate(selected[:-1]):
-        p1: PosBase = selected[i]
-        p2: PosBase = selected[i+1]
-        r1: int
-        c1: int
-        r1, c1 = p1.r, p1.c
-        r2: int
-        c2: int
-        r2, c2 = p2.r, p2.c
-        dr: int
-        dc: int
-        dr = r2 - r1
-        dc = c2 - c1
-        if dr == 0:
-            selected_horiz.add((r1, min(c1, c2)))
-        elif dc == 0:
-            selected_vert.add((min(r1, r2), c1))
+        p_1: PosBase = selected[i]
+        p_2: PosBase = selected[i+1]
+        r_1: int
+        c_1: int
+        r_1, c_1 = p_1.r, p_1.c
+        r_2: int
+        c_2: int
+        r_2, c_2 = p_2.r, p_2.c
+        d_r: int
+        d_c: int
+        d_r = r_2 - r_1
+        d_c = c_2 - c_1
+        if d_r == 0:
+            selected_horiz.add((r_1, min(c_1, c_2)))
+        elif d_c == 0:
+            selected_vert.add((min(r_1, r_2), c_1))
         else:
-            if (dr, dc) == (1, 1) or (dr, dc) == (-1, -1):
-                selected_diag_backslash.add((min(r1, r2), min(c1, c2)))
+            if (d_r, d_c) == (1, 1) or (d_r, d_c) == (-1, -1):
+                selected_diag_backslash.add((min(r_1, r_2), min(c_1, c_2)))
             else:
-                selected_diag_slash.add((min(r1, r2), min(c1, c2)))
+                selected_diag_slash.add((min(r_1, r_2), min(c_1, c_2)))
 
-    hint = strands.active_hint()
+    hint: None | tuple[int, bool] = strands.active_hint()
     hint_pos: set[tuple[int, int]] = set()
     hint_end: set[tuple[int, int]] = set()
     if hint is not None:
-        idx, show_end = hint
-        _, hstrand = strands.answers()[idx]
+        i2: int
+        show_end: bool
+        i2, show_end = hint
+        _, hstrand = strands.answers()[i2]
         hpos = hstrand.positions()
         if show_end:
             for p in hpos:
@@ -186,21 +188,32 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
             for coord in selected_diag_backslash:
                 rr, cc = coord
                 if rr == r:
-                    between_rows[cc * 4 + 2] = bold + green + "\\" + reset
+                    if between_rows[cc * 4 + 2] == " ":
+                        between_rows[cc * 4 + 2] = bold + green + "\\" + reset
+                    else:
+                        between_rows[cc * 4 + 2] = bold + green + "X" + reset
             for coord in vert:
-                rr: int
-                cc: int
-                rr, cc, = coord
-                if rr == r:
-                    between_rows[cc * 4] = bold + blue + "|" + reset
+                rr_2: int
+                cc_2: int
+                rr_2, cc_2, = coord
+                if rr_2 == r:
+                    between_rows[cc_2 * 4] = bold + blue + "|" + reset
             for coord in diag_slash:
-                rr, cc = coord
-                if rr == r:
-                    between_rows[cc * 4 + 2] = bold + blue + "/" + reset
+                rr_2, cc_2 = coord
+                if rr_2 == r:
+                    if between_rows[cc_2 * 4 + 2] == " ":
+                        between_rows[cc_2 * 4 + 2] = bold + blue + "/" + reset
+                    if between_rows[cc_2 * 4 + 2] == bold + green + "\\" + reset:
+                        between_rows[cc_2 * 4 + 2] = bold + green + "X" + reset
             for coord in diag_backslash:
-                rr, cc = coord
-                if rr == r:
-                    between_rows[cc * 4 + 2] = bold + blue + "\\" + reset
+                rr_2, cc = coord
+                if rr_2 == r:
+                    if between_rows[cc_2 * 4 + 2] == " ":
+                        between_rows[cc_2 * 4 + 2] = bold + blue + "\\" + reset
+                    if between_rows[cc_2 * 4 + 2] == bold + blue + "/" + reset:
+                        between_rows[cc_2 * 4 + 2] = bold + blue + "X" + reset
+                    else:
+                        between_rows[cc_2 * 4 + 2] = bold + green + "\\" + reset
         print("LL " + "".join(between_rows) + "RR")
 
     found_count = len(connections)
@@ -215,11 +228,11 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
     print("BOTTOM" + ("-" * ((4 * columns) - 3)))
 
 
-def play_game(game_file) -> None:
+def play_game(game_file: str) -> None:
     """
     Allows for the game to be run in the terminal.
     """
-    game: StrandsGameBase = StrandsGameFake(game_file, hint_threshold = 3)
+    game: StrandsGameFake = StrandsGameFake(game_file, hint_threshold = 3)
     current_pos = Pos(0, 0)
     selected = [current_pos]
     board: BoardBase = game.board()
@@ -236,7 +249,7 @@ def play_game(game_file) -> None:
         if key == "q":
             break
 
-        elif key in key_dict:
+        elif isinstance(key, str) and key in key_dict:
             dr, dc = key_dict[key]
             new_r = current_pos.r + dr
             new_c = current_pos.c + dc
@@ -284,7 +297,7 @@ def play_game(game_file) -> None:
 if __name__ == "__main__":
 
     if sys.argv[1] == "play":
-        game_file = sys.argv[2]
+        game_file: str = sys.argv[2]
         play_game(game_file)
     
     elif sys.argv[1] == "show":
