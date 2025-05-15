@@ -6,6 +6,7 @@ import pygame
 import sys
 from fakes import Pos, StrandFake, BoardFake, StrandsGameFake
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
+from ui import ArtGUIStub
 
 COLORS: dict[str, tuple[int, int, int]] = {
     "WHITE": (255, 255, 255), 
@@ -23,7 +24,18 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase,
     """
     Draws the current state of the Board
     """
-    surface.fill((COLORS["WHITE"]))
+    #Uses the ArtGUIStub to draw the interior and frame
+    art = ArtGUIStub(frame_width = 15)
+    art.draw_background(surface)
+    border = art.frame_width
+    inner_rect = pygame.Rect(
+        border,
+        border,
+        surface.get_width() - 2 * border,
+        surface.get_height() - 2 * border
+    )
+    pygame.draw.rect(surface, COLORS["WHITE"], inner_rect)
+    
     board: BoardBase = strands.board()
     rows: int = board.num_rows()
     cols: int = board.num_cols()
