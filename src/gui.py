@@ -48,7 +48,7 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase,
                     (x2, y2), width=4)
         for pos in positions:
             highlighted_positions.add((pos.r, pos.c))
-    
+
     # Displays the pending selection with the color green
     for pos in pending:
         center: tuple[int, int] = (pos.c * CELL_SIZE + CELL_SIZE // 2, 
@@ -85,8 +85,8 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase,
                 pygame.draw.circle(surface, COLORS["PINK"], center, radius)
             else:
                 pygame.draw.circle(surface, COLORS["YELLOW"], center, radius)
-        
-                
+
+
     # Adds/Updates the letters on the surface as well as blue circles for words
     # that are already found
     for row in range(rows):
@@ -107,7 +107,7 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase,
                 row * CELL_SIZE + CELL_SIZE // 2)
                 )
             surface.blit(letter_surface, letter_rect)
-    
+
     # Adds/Updates the "found" phrase on the bottom
     hint_surface: pygame.Surface = font.render(f"Found {len(
         strands.found_strands())}/{len(strands.answers())} Use Hint", True, 
@@ -172,7 +172,7 @@ def run_game() -> None:
 
                 if event.key == pygame.K_h:
                     game.use_hint()
-            
+
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x: int
                 y: int
@@ -205,7 +205,7 @@ def run_game() -> None:
                         elif cell_pos in currently_selected:
                             index: int = currently_selected.index(cell_pos)
                             currently_selected = currently_selected[:index + 1]
-                        
+
                         else:
                             if cell_pos.is_adjacent_to(last_pos):
                                 currently_selected.append(cell_pos)
