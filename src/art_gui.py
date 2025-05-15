@@ -1,5 +1,6 @@
 import sys
 import pygame
+import math
 from ui import ArtGUIBase, GUIStub
 
 class ArtGUI9Slice(ArtGUIBase):
@@ -34,7 +35,67 @@ class ArtGUI9Slice(ArtGUIBase):
 
         pygame.draw.rect(surface, colors["center"], (fw, fw, w-2*fw, h-2*fw))
 
+class ArtGUICat3(ArtGUIBase):
+    def __init__(self, frame_width: int):
+        self.frame_width = frame_width
+
+    def draw_background(self, surface: pygame.Surface) -> None:
+        w, h = surface.get_width(), surface.get_height()
+        hex_radius = 20
+        hex_height = hex_radius * 2
+        hex_width = int(1.732 * hex_radius)
+        vert_spacing = int(0.75 * hex_height)
+
+        def hexagon_points(cx, cy):
+            points = []
+            for i in range(6):
+                angle = i * 60 * 3.14159 / 180
+                x = cx + hex_radius * math.cos(angle)
+                y = cy + hex_radius * math.sin(angle)
+                points.append((x, y))
+            return points
+        
+        for y in range(0, h + hex_height, vert_spacing):
+            for x in range(0, w + hex_width, hex_width):
+                offset = hex_width // 2 if (y // vert_spacing) % 2 == 1 else 0
+                points = hexagon_points(x + offset, y)
+                pygame.draw.polygon(surface, (255, 215, 0), points, 1)
+
+class ArtGUICat4(ArtGUIBase):
+    def __init__(self, frame_width: int = 20):
+        self.frame_width = frame_width
+
+    def draw_background(self, surface: pygame.Surface) -> None:
+        w, h = surface.get_width(), surface.get_height()
+        surface.fill((245, 255, 250))
+        center_x, center_y = w // 2, h // 2
+        spacing = 60
+        nodes = [
+            (center_x - spacing, center_y - spacing),
+            (center_x, center_y - spacing - 20),
+            (center_x + spacing, center_y - spacing),
+            (center_x - spacing // 2, center_y + spacing // 2),
+            (center_x + spacing // 2, center_y + spacing // 2),
+            (center_x, center_y + spacing + 20)
+        ]
+        for (x, y) in nodes:
+            pygame.draw.circle(surface, (50, 100, 200), (x, y), 10)
+        edges = [(0, 1), (1, 2), (0, 3), (1, 4), (3, 5), (4, 5)]
+        for i, j in edges:
+            pygame.draw.line(surface, (100, 100, 100), nodes[i], nodes[j], 2)
+
 if __name__ == "__main__":
-    fw, width, height = map(int, sys.argv[1:])
-    gui = GUIStub(ArtGUI9Slice(fw), width, height)
-    gui.run_event_loop()
+    args = sys.argv[1:]
+    if args[0] == "9slices":
+        fw, width, height = map(int, args[1:])
+        gui = GUIStub(ArtGUI9Slice(fw), width, height)
+        gui.run_event_loop()
+    elif args[0] == "cat3":
+        fw, width, height = map(int, args[1:])
+        gui = GUIStub(ArtGUICat3(fw), width, height)
+        gui.run_event_loop()
+    elif args[0] == "cat4":
+        gui = GUIStub(ArtGUICat4(), 300, 400)
+        gui.run_event_loop()
+    else:
+        print(f"Pattern '{args[0]}' is not supported in GUI.")
