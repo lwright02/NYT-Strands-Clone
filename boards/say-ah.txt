@@ -1,0 +1,19 @@
+'Say "ah"'
+
+T T D O G E
+H E S C I N
+E O O T Y R
+P S R P E S
+O C S T A E
+T O M K Z U
+H M E R I A
+E R T E T G
+
+tape         5 4  e nw e
+syringe      4 6  nw e nw e nw e
+gauze        8 6  n n w ne
+stethoscope  2 3  nw s nw s se s s w n n
+thermometer  6 1  s s e n n e s s e n
+doctorskit   1 3  e s s w s s se se s
+
+https://www.nytimes.com/games/strands (5/3/2025)

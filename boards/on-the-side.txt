@@ -1,0 +1,20 @@
+"On the side"
+
+N G T E K S
+I R S A E Y
+E S T I R L
+O S R U C F
+H F O H R E
+H M E E K L
+W C N N I R
+A F F L E C
+
+home         5 4  w sw e
+steak        2 3  n e s ne
+curly        4 5  w ne e n
+waffle       7 1  s e e e e
+crinkle      8 6  n w w ne e n
+shoestring   4 2  sw n n e e nw w n e
+frenchfries  4 6  sw sw sw w nw ne ne ne ne ne
+
+https://www.nytimes.com/games/strands (5/5/2025)
