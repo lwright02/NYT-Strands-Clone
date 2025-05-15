@@ -5,17 +5,21 @@ GUI for Strands
 import pygame
 import sys
 from fakes import Pos, StrandFake, BoardFake, StrandsGameFake
-from stubs import PosStub, StrandStub, BoardStub, StrandsGameStub
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
 
 COLORS: dict[str, tuple[int, int, int]] = {
-    "WHITE": (255, 255, 255), "YELLOW": (255, 255, 0), "BLACK": (0, 0, 0), 
-    "LIGHTBLUE": (170, 215, 230)
+    "WHITE": (255, 255, 255), 
+    "YELLOW": (255, 255, 0), 
+    "BLACK": (0, 0, 0), 
+    "LIGHTBLUE": (170, 215, 230), 
+    "GREEN": (0, 255, 0),
+    "PINK": (255, 180, 190)
     }
 CELL_SIZE: int = 50
 
 
-def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase) -> None:
+def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase, 
+    pending: list[Pos]) -> None:
     """
     Draws the current state of the Board
     """
@@ -44,18 +48,56 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase) -> 
                     (x2, y2), width=4)
         for pos in positions:
             highlighted_positions.add((pos.r, pos.c))
+    
+    # Displays the pending selection with the color green
+    for pos in pending:
+        center: tuple[int, int] = (pos.c * CELL_SIZE + CELL_SIZE // 2, 
+            pos.r * CELL_SIZE + CELL_SIZE // 2)
+        radius: int = CELL_SIZE // 3
+        pygame.draw.circle(surface, COLORS["GREEN"], center, radius)
 
+    if len(pending) >= 2:    
+        for i in range(len(pending) - 1):
+            pending_pos_1: PosBase = pending[i]
+            pending_pos_2: PosBase = pending[i + 1]
+            x1 = pending_pos_1.c * CELL_SIZE + CELL_SIZE // 2
+            y1 = pending_pos_1.r * CELL_SIZE + CELL_SIZE // 2
+            x2 = pending_pos_2.c * CELL_SIZE + CELL_SIZE // 2
+            y2 = pending_pos_2.r * CELL_SIZE + CELL_SIZE // 2
+            pygame.draw.line(surface, COLORS["GREEN"], (x1, y1), 
+                (x2, y2), width=4)
+
+    # Draws the hints on the board
+    active_hint: tuple[int, bool] | None = strands.active_hint()
+    if active_hint is not None:
+        index: int
+        ends: bool
+        index, ends = active_hint
+        hint_strand: StrandBase
+        _, hint_strand = strands.answers()[index]
+        hint_positions: list[PosBase] = hint_strand.positions()
+
+        for i, pos in enumerate(hint_positions):
+            center = (pos.c * CELL_SIZE + CELL_SIZE // 2, pos.r * CELL_SIZE + 
+                CELL_SIZE // 2)
+            radius = CELL_SIZE // 4
+            if ends and (i == 0 or i == len(hint_positions) - 1):
+                pygame.draw.circle(surface, COLORS["PINK"], center, radius)
+            else:
+                pygame.draw.circle(surface, COLORS["YELLOW"], center, radius)
+        
+                
     # Adds/Updates the letters on the surface as well as blue circles for words
     # that are already found
     for row in range(rows):
         for col in range(cols):
-            position: PosBase = PosStub(row, col)
+            position: PosBase = Pos(row, col)
             letter: str = board.get_letter(position)
 
             if (row, col) in highlighted_positions:
-                center: tuple[int, int] = (col * CELL_SIZE + CELL_SIZE // 2, 
+                center = (col * CELL_SIZE + CELL_SIZE // 2, 
                     row * CELL_SIZE + CELL_SIZE // 2)
-                radius: int = CELL_SIZE // 3
+                radius = CELL_SIZE // 3
                 pygame.draw.circle(surface, COLORS["LIGHTBLUE"], center, radius)
 
             letter_surface: pygame.Surface = font.render(letter, True, 
@@ -83,7 +125,18 @@ def run_game() -> None:
     """
     pygame.init()
     pygame.display.set_caption("Strands")
-    game: StrandsGameBase = StrandsGameStub("filename", hint_threshold = 3)
+    currently_selected: list[Pos] = []
+    if len(sys.argv) != 3:
+        sys.exit(1)
+    mode: str = sys.argv[1]
+    if mode not in ("play", "show"):
+        sys.exit(1)
+    filename: str = sys.argv[2]
+    game: StrandsGameBase = StrandsGameFake(filename, hint_threshold = 3)
+    if mode == "show":
+        strand: StrandBase
+        for _, strand in game.answers():
+            game.submit_strand(strand)
     board: BoardBase = game.board()
     rows: int = board.num_rows()
     cols: int = board.num_cols()
@@ -93,9 +146,9 @@ def run_game() -> None:
         surface_height))
     clock: pygame.time.Clock = pygame.time.Clock()
     answers: list[tuple[str, StrandBase]] = game.answers()
-    i: int = 0
+    return_key_index: int = 0
 
-    while not game.game_over():
+    while not game.game_over() or mode == "show":
 
         events = pygame.event.get()
         for event in events:
@@ -111,10 +164,56 @@ def run_game() -> None:
                     sys.exit()
 
                 if event.key == pygame.K_RETURN:
-                    game.submit_strand(answers[i][1])
-                    i += 1
+                    game.submit_strand(answers[return_key_index][1])
+                    return_key_index += 1
 
-        refresh_board(surface, game)
+                if event.key == pygame.K_ESCAPE:
+                    currently_selected.clear()
+
+                if event.key == pygame.K_h:
+                    game.use_hint()
+            
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                x: int
+                y: int
+                x, y = event.pos
+                col: int = x // CELL_SIZE
+                row: int = y // CELL_SIZE
+                cell_pos = Pos(row, col)
+
+                if 0 <= row < rows and 0 <= col < cols:
+                    if not currently_selected:
+                        currently_selected.append(cell_pos)
+
+                    else:
+                        last_pos: Pos = currently_selected[-1]
+                        if cell_pos == last_pos:
+                            if len(currently_selected) >= 2:
+                                start: Pos = currently_selected[0]
+                                steps: list[Step] = [
+                                    currently_selected[i].step_to(
+                                    currently_selected[i + 1]) for i in 
+                                    range(len(currently_selected) - 1)]
+                                strand = StrandFake(start, steps)
+
+                                answer: StrandBase
+                                for _, answer in answers:
+                                    if strand == answer:
+                                        game.submit_strand(strand)
+                                        currently_selected.clear()
+
+                        elif cell_pos in currently_selected:
+                            index: int = currently_selected.index(cell_pos)
+                            currently_selected = currently_selected[:index + 1]
+                        
+                        else:
+                            if cell_pos.is_adjacent_to(last_pos):
+                                currently_selected.append(cell_pos)
+
+                            else:
+                                currently_selected = [cell_pos]
+
+        refresh_board(surface, game, currently_selected)
         pygame.display.update()
         clock.tick(30)
 
