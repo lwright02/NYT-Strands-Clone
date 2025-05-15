@@ -180,45 +180,34 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
         for _ in range(4 * columns - 2):
             between_rows.append(" ")
         if r < rows - 1:
-            for coord in selected_vert:
-                rr: int
-                cc: int
-                rr, cc, = coord
+            for rr, cc in vert:
+                if rr == r:
+                    between_rows[cc * 4] = bold + blue + "|" + reset
+            for rr, cc in diag_slash:
+                if rr == r and between_rows[cc * 4 + 2] == " ":
+                    between_rows[cc * 4 + 2] = bold + blue + "/" + reset
+            for rr, cc in diag_backslash:
+                if rr == r and between_rows[cc * 4 + 2] == " ":
+                    between_rows[cc * 4 + 2] = bold + blue + "\\" + reset
+                elif rr == r and between_rows[cc * 4 + 2] == bold + blue + "/" + reset:
+                    between_rows[cc * 4 + 2] = bold + blue + "X" + reset
+
+            for rr, cc in selected_vert:
                 if rr == r:
                     between_rows[cc * 4] = bold + green + "|" + reset
-            for coord in selected_diag_slash:
-                rr, cc = coord
-                if rr == r:
+            for rr, cc in selected_diag_slash:
+                if (rr == r 
+                    and between_rows[cc * 4 + 2] == bold + blue + "\\" + reset):
+                    between_rows[cc * 4 + 2] = bold + green + "X" + reset
+                elif rr == r:
                     between_rows[cc * 4 + 2] = bold + green + "/" + reset
-            for coord in selected_diag_backslash:
-                rr, cc = coord
-                if rr == r:
-                    if between_rows[cc * 4 + 2] == " ":
-                        between_rows[cc * 4 + 2] = bold + green + "\\" + reset
-                    else:
-                        between_rows[cc * 4 + 2] = bold + green + "X" + reset
-            for coord in vert:
-                rr_2: int
-                cc_2: int
-                rr_2, cc_2, = coord
-                if rr_2 == r:
-                    between_rows[cc_2 * 4] = bold + blue + "|" + reset
-            for coord in diag_slash:
-                rr_2, cc_2 = coord
-                if rr_2 == r:
-                    if between_rows[cc_2 * 4 + 2] == " ":
-                        between_rows[cc_2 * 4 + 2] = bold + blue + "/" + reset
-                    if between_rows[cc_2 * 4 + 2] == bold + green + "\\" + reset:
-                        between_rows[cc_2 * 4 + 2] = bold + green + "X" + reset
-            for coord in diag_backslash:
-                rr_2, cc = coord
-                if rr_2 == r:
-                    if between_rows[cc_2 * 4 + 2] == " ":
-                        between_rows[cc_2 * 4 + 2] = bold + blue + "\\" + reset
-                    if between_rows[cc_2 * 4 + 2] == bold + blue + "/" + reset:
-                        between_rows[cc_2 * 4 + 2] = bold + blue + "X" + reset
-                    else:
-                        between_rows[cc_2 * 4 + 2] = bold + green + "\\" + reset
+            for rr, cc in selected_diag_backslash:
+                if (rr == r 
+                    and between_rows[cc * 4 + 2] != bold + blue + "\\" + reset 
+                    and between_rows[cc * 4 + 2] !=  " "):
+                    between_rows[cc * 4 + 2] = bold + green + "X" + reset
+                elif rr == r:
+                    between_rows[cc * 4 + 2] = bold + green + "\\" + reset
         print("LL " + "".join(between_rows) + "RR")
 
     found_count = len(connections)
