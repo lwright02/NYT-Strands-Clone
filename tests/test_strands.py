@@ -1,5 +1,5 @@
 """
-Tests for Milestone 2 Game Logic
+Tests for Milestone 3 Game Logic
 """
 
 import pytest
@@ -197,9 +197,6 @@ def test_load_game_face_time_invalid(board, error) -> None:
     with pytest.raises(error):
         StrandsGame(board)
 
-@pytest.fixture
-def ft_game():
-    return StrandsGame("boards/face-time.txt")
 
 def play_game_once_helper(game):
     """
@@ -429,9 +426,6 @@ def test_load_game_directions_invalid(board, error) -> None:
     with pytest.raises(error):
         StrandsGame(board)
 
-@pytest.fixture
-def dir_game():
-    return StrandsGame("boards/directions.txt")
 
 def test_play_game_directions_once(dir_game) -> None:
     """
@@ -499,3 +493,115 @@ def test_valid_game_files(filename) -> None:
     directory.
     """
     game = StrandsGame(filename)
+
+
+def play_game_hints_0_helper(game) -> None:
+    """
+    Helper function that drives a game with hint
+    threshold zero into a state where use_hint is 
+    successful five times
+    """
+    assert game.use_hint() == (0, False)
+    assert game.active_hint() == (0, False)
+
+    assert game.use_hint() == (0, True)
+    assert game.active_hint() == (0, True)
+
+    assert game.use_hint() == "Use your current hint"
+    assert game.active_hint() == (0, True)
+
+    word, strand = game.answers()[0]
+    assert game.submit_strand(strand) == (word, True)
+    assert game.active_hint() is None
+
+    assert game.use_hint() == (1, False)
+    assert game.active_hint() == (1, False)
+
+    assert game.use_hint() == (1, True)
+    assert game.active_hint() == (1, True)
+
+
+def test_play_game_face_time_hints_0() -> None:
+    """
+    Trigger five succesful uses of use_hint with the
+    "face time" game file and a hint threshold of zero.
+    """
+    ft_game = StrandsGame("boards/face-time.txt", 0)
+    play_game_hints_0_helper(ft_game)
+
+
+def test_play_game_face_time_hints_1() -> None:
+    """
+    Trigger four succesful uses of use_hint with the
+    "face time" game file and a hint threshold of one.
+    """
+    ft_game = StrandsGame("boards/face-time.txt", 1)
+    
+    assert ft_game.submit_strand(
+        Strand(Pos(6, 1), [Step.S, Step.E, Step.E])
+    ) == ("food", False)
+    assert ft_game.use_hint() == (0, False)
+    assert ft_game.active_hint() == (0, False)
+
+    assert ft_game.submit_strand(
+        Strand(Pos(1, 4), [Step.SE, Step.W, Step.NW, Step.NE, Step.E, Step.S])
+    ) == ("bronze", False)
+    assert ft_game.use_hint() == (0, True)
+    assert ft_game.active_hint() == (0, True)
+
+    word, strand = ft_game.answers()[0]
+    assert ft_game.submit_strand(strand) == (word, True)
+
+    assert ft_game.submit_strand(
+        Strand(Pos(2, 0), [Step.E, Step.N, Step.W])
+    ) == ("race", False)
+    assert ft_game.use_hint() == (1, False)
+    assert ft_game.active_hint() == (1, False)
+
+    assert ft_game.submit_strand(
+        Strand(Pos(1, 1), [Step.E, Step.NW, Step.W, Step.S, Step.S])
+    ) == ("cancer", False)
+    assert ft_game.use_hint() == (1, True)
+    assert ft_game.active_hint() == (1, True)
+
+def test_play_game_directions_hints_0() -> None:
+    """
+    Trigger five succesful uses of use_hint with the
+    "directions" game file and a hint threshold of zero.
+    """
+    dir_game = StrandsGame("boards/directions.txt", 0)
+    play_game_hints_0_helper(dir_game)
+
+def test_play_game_face_time_hints_1() -> None:
+    """
+    Trigger four succesful uses of use_hint with the
+    "directions" game file and a hint threshold of one.
+    """
+    dir_game = StrandsGame("boards/directions.txt", 1)
+    
+    assert dir_game.submit_strand(
+    Strand(Pos(2, 0), [Step.E, Step.SW, Step.S, Step.NE])
+    ) == ("shout", False)
+    assert dir_game.use_hint() == (0, False)
+    assert dir_game.active_hint() == (0, False)
+    
+    assert dir_game.submit_strand(
+    Strand(Pos(6, 2), [Step.W, Step.N, Step.NW, Step.S])
+    ) == ("snout", False)
+    assert dir_game.use_hint() == (0, True)
+    assert dir_game.active_hint() == (0, True)
+
+    word, strand = dir_game.answers()[0]
+    assert dir_game.submit_strand(strand) == (word, True)
+
+    assert dir_game.submit_strand(
+    Strand(Pos(4, 1), [Step.E, Step.E, Step.N])
+    ) == ("rice", False)
+    assert dir_game.use_hint() == (1, False)
+    assert dir_game.active_hint() == (1, False)
+
+    assert dir_game.submit_strand(
+    Strand(Pos(2, 0), [Step.S, Step.S, Step.E])
+    ) == ("sour", False)
+    assert dir_game.use_hint() == (1, True)
+    assert dir_game.active_hint() == (1, True)

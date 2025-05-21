@@ -280,7 +280,10 @@ class StrandsGame(StrandsGameBase):
         if not answer_lines:
             raise ValueError("No answers provided")
         
-        self._theme: str = theme_lines[0]
+        if isinstance(game_file, list):
+            self._theme: str = theme_lines[0].lower()
+        else:
+            self._theme: str = theme_lines[0]
 
         grid: list[list[str]] = []
 
