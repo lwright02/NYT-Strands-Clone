@@ -4,8 +4,7 @@ GUI for Strands
 
 import pygame
 import sys
-from fakes import Pos, StrandFake, BoardFake, StrandsGameFake
-from stubs import PosStub, StrandStub, BoardStub, StrandsGameStub
+from strands import Pos, Strand, Board, StrandsGame
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
 
 COLORS: dict[str, tuple[int, int, int]] = {
@@ -49,7 +48,7 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase) -> 
     # that are already found
     for row in range(rows):
         for col in range(cols):
-            position: PosBase = PosStub(row, col)
+            position: PosBase = Pos(row, col)
             letter: str = board.get_letter(position)
 
             if (row, col) in highlighted_positions:
@@ -77,13 +76,13 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase) -> 
     surface.blit(hint_surface, hint_rect)
 
 
-def run_game() -> None:
+def run_game(filename: str) -> None:
     """
     Plays a game of Strands on a pygame window
     """
     pygame.init()
     pygame.display.set_caption("Strands")
-    game: StrandsGameBase = StrandsGameStub("filename", hint_threshold = 3)
+    game: StrandsGameBase = StrandsGame(filename, hint_threshold = 3)
     board: BoardBase = game.board()
     rows: int = board.num_rows()
     cols: int = board.num_cols()
@@ -120,4 +119,7 @@ def run_game() -> None:
 
 
 if __name__ == "__main__":
-    run_game()
+    if len(sys.argv) != 3 or sys.argv[1] != "play":
+        sys.exit(1)
+
+    run_game(sys.argv[2])

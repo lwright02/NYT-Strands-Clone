@@ -5,8 +5,7 @@ TUI for Strands
 import sys
 import termios
 import tty
-from fakes import Pos, StrandFake, BoardFake, StrandsGameFake
-from stubs import PosStub, StrandStub, BoardStub, StrandsGameStub
+from strands import Pos, Strand, Board, StrandsGame
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
 
 
@@ -133,11 +132,11 @@ def update_display(strands: StrandsGameBase,
     print("BOTTOM" + ("-" * ((4 * columns) - 3)))
 
 
-def play_game() -> None:
+def play_game(filename: str) -> None:
     """
     Allows for the game to be run in the terminal.
     """
-    game: StrandsGameBase = StrandsGameStub("filename", hint_threshold = 3)
+    game: StrandsGameBase = StrandsGame(filename, hint_threshold = 3)
 
     while not game.game_over():
         update_display(game, game.found_strands())
@@ -151,4 +150,7 @@ def play_game() -> None:
     update_display(game, game.found_strands())
 
 if __name__ == "__main__":
-    play_game()
+    if len(sys.argv) != 3 or sys.argv[1] != "play":
+        sys.exit(1)
+
+    play_game(sys.argv[2])
