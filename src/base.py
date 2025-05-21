@@ -78,7 +78,7 @@ class PosBase(ABC):
         as a step from the current position to the other.
 
         Raises ValueError if the other position is more
-        than two steps away from self.
+        than one step ~~two steps~~ away from self. (UPDATED)
         """
         raise NotImplementedError
 
@@ -289,8 +289,9 @@ class StrandsGameBase(ABC):
                 regardless the WORDs are stored in the
                 game object with only lowercase letters.
 
-           - that each answer strand has no folds
-             (edges do not cross)
+           - UPDATED: it's okay for an answer strand to be folded
+             ~~that each answer strand has no folds
+               (edges do not cross)~~
 
            - that answers fill the board
 

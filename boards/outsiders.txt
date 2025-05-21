@@ -1,0 +1,20 @@
+"Outsiders"
+
+T K C A A B
+N T I N P C
+E P M O G K
+M R E H S G
+A C T R A E
+E R R I L L
+O L G N N R
+C O L A T E
+
+tent         2 2  sw n n
+grill        7 3  n e e e
+cooler       8 1  e nw e nw e
+thermos      5 3  ne w w ne e se
+lantern      8 3  e n se e n w
+backpack     1 6  w se s nw nw w w
+campinggear  5 2  w n ne ne e se se s w w
+
+https://www.nytimes.com/games/strands (5/9/2025)
