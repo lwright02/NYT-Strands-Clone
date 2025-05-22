@@ -231,7 +231,7 @@ def run_game(filename: str) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3 or sys.argv[1] != "play":
+    if len(sys.argv) != 3 or sys.argv[1] != "play" and sys.argv[1] != "show":
         sys.exit(1)
 
     run_game(sys.argv[2])
