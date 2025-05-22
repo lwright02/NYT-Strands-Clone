@@ -425,7 +425,7 @@ class StrandsGame(StrandsGameBase):
             dictionary word that has already been found.
 
         Returns "Too short":
-            if the strand corresponds to fewer than four
+            if the strand corresponds to fewer than three
             letters.
 
         Returns "Not in word list":
@@ -433,7 +433,7 @@ class StrandsGame(StrandsGameBase):
             is not a valid dictionary word.
         """
         positions = strand.positions()
-        if len(positions) < 4:
+        if len(positions) < 3:
             return "Too short"
 
         word = self._board.evaluate_strand(strand).lower()
@@ -445,7 +445,7 @@ class StrandsGame(StrandsGameBase):
                     if answer_strand in self._found:
                         return "Already found"
                     
-                    self._found.append(answer_strand)
+                    self._found.append(strand)
                     if self._active_hint and self._active_hint[0] == idx:
                         self._active_hint = None
                     
