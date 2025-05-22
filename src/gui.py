@@ -2,13 +2,11 @@
 GUI for Strands
 """
 
-import click
-import random
-import pygame
-import sys
-from strands import Pos, Strand, Board, StrandsGame
+import click, random, os, pygame, sys
+from strands import Pos, Strand, StrandsGame
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
 from ui import ArtGUIStub
+from art_gui import ArtGUIX
 
 COLORS: dict[str, tuple[int, int, int]] = {
     "WHITE": (255, 255, 255), 
@@ -234,20 +232,21 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3) -> None
     sys.exit()
 
 
+#Click Command-Line Commands
+
 @click.command()
 @click.option('--show', is_flag=True, help="Show the answers instead of playing the game.")
 @click.option('-g', '--game', default=None, help="Game to load (e.g. cs-142). Random if not provided.")
 @click.option('-h', '--hint', default=3, type=int, help="Hint threshold (default: 3).")
-@click.option('-a', '--art', default="stub", help="Art frame to use (e.g. stub, cat1).")
+@click.option('-a', '--art', default="stub", help="Art frame to use (ex: stub, cat1).")
 
 def main(show: bool, game: str | None, hint: int, art: str):
     if game:
         filename = f"boards/{game}.txt"
     else:
-        import os, random
         txt_files = [f for f in os.listdir("boards") if f.endswith(".txt")]
         if not txt_files:
-            print("No game files found in 'boards/'!")
+            print("Can't find game file")
             sys.exit(1)
         filename = f"boards/{random.choice(txt_files)}"
     
