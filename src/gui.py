@@ -2,6 +2,8 @@
 GUI for Strands
 """
 
+import click
+import random
 import pygame
 import sys
 from strands import Pos, Strand, Board, StrandsGame
@@ -131,21 +133,16 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase,
     surface.blit(hint_surface, hint_rect)
 
 
-def run_game(filename: str) -> None:
+def run_game(filename: str, show: bool = False, hint_threshold: int = 3) -> None:
     """
     Plays a game of Strands on a pygame window
     """
     pygame.init()
     pygame.display.set_caption("Strands")
     currently_selected: list[Pos] = []
-    if len(sys.argv) != 3:
-        sys.exit(1)
-    mode: str = sys.argv[1]
-    if mode not in ("play", "show"):
-        sys.exit(1)
-    filename: str = sys.argv[2]
-    game: StrandsGameBase = StrandsGame(filename, hint_threshold = 3)
-    if mode == "show":
+
+    game: StrandsGameBase = StrandsGame(filename, hint_threshold = hint_threshold)
+    if show:
         strand: StrandBase
         for _, strand in game.answers():
             game.submit_strand(strand)
@@ -160,32 +157,32 @@ def run_game(filename: str) -> None:
     answers: list[tuple[str, StrandBase]] = game.answers()
     return_key_index: int = 0
 
-    while not game.game_over() or mode == "show":
-
+    running = True
+    while running:
         events = pygame.event.get()
         for event in events:
 
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                running = False
 
             elif event.type == pygame.KEYUP:
 
                 if event.key == pygame.K_q:
-                    pygame.quit()
-                    sys.exit()
+                    running = False
+                
+                if not show:
 
-                if event.key == pygame.K_RETURN:
-                    game.submit_strand(answers[return_key_index][1])
-                    return_key_index += 1
+                    if event.key == pygame.K_RETURN:
+                        game.submit_strand(answers[return_key_index][1])
+                        return_key_index += 1
 
-                if event.key == pygame.K_ESCAPE:
-                    currently_selected.clear()
+                    if event.key == pygame.K_ESCAPE:
+                        currently_selected.clear()
 
-                if event.key == pygame.K_h:
-                    game.use_hint()
+                    if event.key == pygame.K_h:
+                        game.use_hint()
 
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONDOWN and not show:
                 x: int
                 y: int
                 x, y = event.pos
@@ -227,11 +224,39 @@ def run_game(filename: str) -> None:
 
         refresh_board(surface, game, currently_selected)
         pygame.display.update()
+
+        if not show and game.game_over():
+            running = False
+
         clock.tick(30)
+
+    pygame.quit()
+    sys.exit()
+
+
+@click.command()
+@click.option('--show', is_flag=True, help="Show the answers instead of playing the game.")
+@click.option('-g', '--game', default=None, help="Game to load (e.g. cs-142). Random if not provided.")
+@click.option('-h', '--hint', default=3, type=int, help="Hint threshold (default: 3).")
+@click.option('-a', '--art', default="stub", help="Art frame to use (e.g. stub, cat1).")
+
+def main(show: bool, game: str | None, hint: int, art: str):
+    if game:
+        filename = f"boards/{game}.txt"
+    else:
+        import os, random
+        txt_files = [f for f in os.listdir("boards") if f.endswith(".txt")]
+        if not txt_files:
+            print("No game files found in 'boards/'!")
+            sys.exit(1)
+        filename = f"boards/{random.choice(txt_files)}"
+    
+    if art != "stub":
+        print(f"Art frame '{art}' not supported in GUI yet. Only 'stub' is implemented.")
+        sys.exit(1)
+
+    run_game(filename, show=show, hint_threshold=hint)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3 or sys.argv[1] != "play" and sys.argv[1] != "show":
-        sys.exit(1)
-
-    run_game(sys.argv[2])
+    main()
