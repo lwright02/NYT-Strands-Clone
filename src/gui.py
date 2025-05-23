@@ -2,11 +2,10 @@
 GUI for Strands
 """
 
-import click, random, os, pygame, sys
+import click, random, os, pygame, sys, math
 from strands import Pos, Strand, StrandsGame
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
 from ui import ArtGUIStub
-from art_gui import ArtGUIX
 
 COLORS: dict[str, tuple[int, int, int]] = {
     "WHITE": (255, 255, 255), 
@@ -155,6 +154,7 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3) -> None
     answers: list[tuple[str, StrandBase]] = game.answers()
     return_key_index: int = 0
 
+    mouse_down = False
     running = True
     while running:
         events = pygame.event.get()
@@ -189,36 +189,53 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3) -> None
                 cell_pos = Pos(row, col)
 
                 if 0 <= row < rows and 0 <= col < cols:
-                    if not currently_selected:
-                        currently_selected.append(cell_pos)
+                    currently_selected.clear()
+                    currently_selected.append(cell_pos)
+                    mouse_down = True
 
-                    else:
-                        last_pos: Pos = currently_selected[-1]
-                        if cell_pos == last_pos:
-                            if len(currently_selected) >= 2:
-                                start: Pos = currently_selected[0]
-                                steps: list[Step] = [
-                                    currently_selected[i].step_to(
-                                    currently_selected[i + 1]) for i in 
-                                    range(len(currently_selected) - 1)]
-                                strand = Strand(start, steps)
+            elif event.type == pygame.MOUSEBUTTONUP and not show:
+                    mouse_down = False
 
-                                answer: StrandBase
-                                for _, answer in answers:
-                                    if strand == answer:
-                                        game.submit_strand(strand)
-                                        currently_selected.clear()
+                    if len(currently_selected) >= 2:
+                        start: Pos = currently_selected[0]
+                        steps: list[Step] = [
+                            currently_selected[i].step_to(
+                            currently_selected[i + 1]) for i in 
+                            range(len(currently_selected) - 1)]
+                        strand = Strand(start, steps)
 
-                        elif cell_pos in currently_selected:
-                            index: int = currently_selected.index(cell_pos)
-                            currently_selected = currently_selected[:index + 1]
+                        answer: StrandBase
+                        for answer, answer_pos in answers:
+                            if board.evaluate_strand(strand) == answer:
+                                game.submit_strand(answer_pos)
+                                currently_selected.clear()
+                                break
+                    currently_selected.clear()
 
+            elif event.type == pygame.MOUSEMOTION and mouse_down and not show:    
+                x: int
+                y: int        
+                x, y = event.pos
+                col = x // CELL_SIZE
+                row = y // CELL_SIZE
+                cell_pos = Pos(row, col)
+
+                if 0 <= row < rows and 0 <= col < cols:
+                    center_x = col * CELL_SIZE + CELL_SIZE // 2
+                    center_y = row * CELL_SIZE + CELL_SIZE // 2
+                    dist = math.hypot(x - center_x, y - center_y)
+                    
+                    if dist < CELL_SIZE * 0.4:
+                        if not currently_selected:
+                            currently_selected.append(cell_pos)
                         else:
-                            if cell_pos.is_adjacent_to(last_pos):
-                                currently_selected.append(cell_pos)
-
-                            else:
-                                currently_selected = [cell_pos]
+                            last_pos = currently_selected[-1]
+                            if cell_pos != last_pos and cell_pos.is_adjacent_to(last_pos):
+                                if cell_pos not in currently_selected:
+                                    currently_selected.append(cell_pos)
+                                else:
+                                    index = currently_selected.index(cell_pos)
+                                    currently_selected = currently_selected[:index + 1]
 
         refresh_board(surface, game, currently_selected)
         pygame.display.update()
@@ -236,7 +253,7 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3) -> None
 
 @click.command()
 @click.option('--show', is_flag=True, help="Show the answers instead of playing the game.")
-@click.option('-g', '--game', default=None, help="Game to load (e.g. cs-142). Random if not provided.")
+@click.option('-g', '--game', default=None, help="Game to load (ex: cs-142). Random if not provided.")
 @click.option('-h', '--hint', default=3, type=int, help="Hint threshold (default: 3).")
 @click.option('-a', '--art', default="stub", help="Art frame to use (ex: stub, cat1).")
 
