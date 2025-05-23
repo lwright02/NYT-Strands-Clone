@@ -15,7 +15,7 @@ import random
 import os
 from strands import Pos, Strand, Board, StrandsGame
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
-from art_tui import ArtTUIBase, ArtTUIWrappers, ArtTUICat1, ArtTUICat2
+from art_tui import ArtTUIBase, ArtTUISpecial, ArtTUIWrappers, ArtTUICat1, ArtTUICat2
 
 key_Enter: int = 13
 key_Esc: int = 27
@@ -311,6 +311,8 @@ def play_game(game_file: str, show: bool = False,
 @click.command()
 @click.option('--show', is_flag=True, 
               help="Show the answers instead of playing the game.")
+@click.option('--special', is_flag=True,
+              help="Play the custom game with the special frame.")
 @click.option('-g','--game', 'game', type=str,
               help="Game to load (e.g. cs-142). Random if not provided.")
 @click.option('-h','--hint',  'hint',
@@ -321,7 +323,11 @@ def play_game(game_file: str, show: bool = False,
               help="Art frame to use (ex: stub, cat1).")
 
 
-def main(show: bool, game: str | None, hint: int, art: str):
+def main(show: bool, special: bool, game: str | None, hint: int, art: str):
+    if special:
+        game_file = os.path.join("assets","Customized.txt")
+        frame = ArtTUISpecial(1, 4*5 + 1)
+        play_game(game_file, show=show, hint_threshold=hint)
     boards_dir = "boards"
     try:
         all_files = os.listdir(boards_dir)

@@ -89,6 +89,39 @@ class ArtTUICat2(ArtTUIBase):
                     line += " "
             print(line)
 
+class ArtTUISpecial(ArtTUIBase):
+    def __init__(self, frame_width: int, interior_width: int):
+        self.frame_width = frame_width
+        self.interior_width = interior_width
+    
+    def print_top_edge(self) -> None:
+        pattern: str = "S T E A K"
+        pad: str = max(0, self.interior_width - len(pattern))
+        print("# " + pattern + " " * pad + " #")
+
+    def print_bottom_edge(self) -> None:
+        pattern = "S H I R T"
+        pad = max(0, self.interior_width - len(pattern))
+        print("# " + pattern + " " * pad + " #")
+    
+    def print_left_bar(self) -> None:
+        print("#", end="")
+
+    def print_right_bar(self) -> None:
+        print("#")
+
+    def print_frame(self, height: int) -> None:
+        for row in range(height):
+            line = ""
+            for col in range(self.interior_width + 2 * self.frame_width):
+                if (row + col) % 4 == 0:
+                    line += "?"
+                elif (row - col) % 4 == 0:
+                    line += "!"
+                else:
+                    line += " "
+            print(line)
+
 if __name__ == "__main__":
     args = sys.argv[1:]
     if args[0] == "wrappers":
