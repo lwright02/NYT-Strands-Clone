@@ -1,4 +1,5 @@
 import sys
+import click
 from ui import ArtTUIBase, TUIStub
 
 CHARS = ['#', '@', '%', '=', '+', '.']
@@ -122,16 +123,35 @@ class ArtTUISpecial(ArtTUIBase):
                     line += " "
             print(line)
 
-if __name__ == "__main__":
-    args = sys.argv[1:]
-    if args[0] == "wrappers":
-        fw, width, height = map(int, args[1:])
-        TUIStub(ArtTUIWrappers(fw, width), width, height)
-    elif args[0] == "cat1":
-        fw, width, height = map(int, args[1:])
-        ArtTUICat1(fw, width).print_frame(height)
-    elif args[0] == "cat2":
-        fw, width, height = map(int, args[1:])
-        ArtTUICat2(fw, width).print_frame(height)
+@click.command()
+@click.option('-a', '--art', required=True, help="Art frame: wrappers, cat1, cat2, special.")
+@click.option('-f', '--frame', type=int, help="Frame width (characters).")
+@click.option('-w', '--width', type=int, help="Interior width (columns).")
+@click.option('-h', '--height', type=int, help="Interior height (rows).")
+def main(art, frame, width, height):
+    supported = {
+        "wrappers": ArtTUIWrappers,
+        "cat0": ArtTUIWrappers,
+        "cat1": ArtTUICat1,
+        "cat2": ArtTUICat2,
+        "special": ArtTUISpecial
+    }
+
+    if art not in supported:
+        click.echo(f"Pattern '{art}' is not supported in TUI.")
+        return
+
+    cls = supported[art]
+
+    if art in {"cat4", "steak", "special"}:
+        tui = cls(0, 20)
+        tui.print_frame(10)
     else:
-        print(f"Pattern '{args[0]}' is not supported in TUI.")
+        if frame is None or width is None or height is None:
+            click.echo("Missing options: --frame, --width, and --height are required unless using cat4/special.")
+            return
+        tui = cls(frame, width)
+        tui.print_frame(height)
+
+if __name__ == "__main__":
+    main()

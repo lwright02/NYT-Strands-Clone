@@ -1,3 +1,4 @@
+import click
 import sys
 import pygame
 import math
@@ -84,18 +85,34 @@ class ArtGUICat4(ArtGUIBase):
         for i, j in edges:
             pygame.draw.line(surface, (100, 100, 100), nodes[i], nodes[j], 2)
 
-if __name__ == "__main__":
-    args = sys.argv[1:]
-    if args[0] == "9slices":
-        fw, width, height = map(int, args[1:])
-        gui = GUIStub(ArtGUI9Slice(fw), width, height)
-        gui.run_event_loop()
-    elif args[0] == "cat3":
-        fw, width, height = map(int, args[1:])
-        gui = GUIStub(ArtGUICat3(fw), width, height)
-        gui.run_event_loop()
-    elif args[0] == "cat4":
-        gui = GUIStub(ArtGUICat4(), 300, 400)
+@click.command()
+@click.option('-a', '--art', required=True, help="Art frame: 9slices, cat3, cat4.")
+@click.option('-f', '--frame', type=int, help="Frame width in pixels.")
+@click.option('-w', '--width', type=int, help="Window width in pixels.")
+@click.option('-h', '--height', type=int, help="Window height in pixels.")
+def main(art, frame, width, height):
+    supported = {
+        "9slices": ArtGUI9Slice,
+        "cat0": ArtGUI9Slice,
+        "cat3": ArtGUICat3,
+        "cat4": ArtGUICat4
+    }
+
+    if art not in supported:
+        click.echo(f"Pattern '{art}' is not supported in GUI.")
+        return
+
+    cls = supported[art]
+
+    if art in {"cat4"}:
+        gui = GUIStub(cls(), 300, 400)
         gui.run_event_loop()
     else:
-        print(f"Pattern '{args[0]}' is not supported in GUI.")
+        if frame is None or width is None or height is None:
+            click.echo("Missing options: --frame, --width, and --height are required unless using cat4/trees.")
+            return
+        gui = GUIStub(cls(frame), width, height)
+        gui.run_event_loop()
+
+if __name__ == "__main__":
+    main()
