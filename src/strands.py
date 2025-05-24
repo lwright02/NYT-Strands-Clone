@@ -168,7 +168,7 @@ class Board(BoardBase):
         col: Col = pos.c
 
         if row >= self.num_rows() or col >= self.num_cols():
-            raise ValueError
+            raise ValueError("Position is not on the board")
 
         return self.letters[row][col]
 
@@ -300,13 +300,47 @@ class StrandsGame(StrandsGameBase):
             sections: list[str] = line.split()
             word: str = sections[0].lower()
 
+            word = sections[0].lower()
+            if len(word) < 3:
+                raise ValueError(f"The word {word} is an answer with less than 3 letters")
+
             r: int = int(sections[1]) - 1
             c: int = int(sections[2]) - 1
+
+            if not (0 <= r < self._board.num_rows() and
+                    0 <= c < self._board.num_cols()):
+                raise ValueError(f"Starting position for {word} is off the board")
 
             steps: list[Step] = [Step(tok.lower()) for tok in sections[3:]]
 
             start: Pos = Pos(r, c)
+            pos = start
+            letters = [self._board.get_letter(pos)]
+            for st in steps:
+                pos = pos.take_step(st)
+                letters.append(self._board.get_letter(pos))
+                # Remark: calling "self._board.get_letter(pos)" checks if 
+                # positions other than the start are off the board
+            candidate = "".join(letters)
+            if candidate.lower() != word:
+                raise ValueError("Answer path spells a different word")
+            
             self._answers.append((word, Strand(start, steps)))
+
+        for word, strand in self._answers:
+            if strand.is_folded():
+                raise ValueError(f"Answer strand for {word} is folded")
+        
+        covered = set()
+        for _, strand in self._answers:
+            for p in strand.positions():
+                covered.add((p.r, p.c))
+        all_cells = set()
+        for r in range(self._board.num_rows()):
+            for c in range(self._board.num_cols()):
+                all_cells.add((r,c))
+        if covered != all_cells:
+            raise ValueError("Board is not filled")
 
         project_root = os.path.abspath(
             os.path.join(os.path.dirname(__file__), os.pardir)
@@ -323,6 +357,11 @@ class StrandsGame(StrandsGameBase):
         self._hint_threshold: int = hint_threshold
         self._hint_meter: int = 0
         self._active_hint: tuple[int, bool] | None = None
+
+    # DELETE THIS MSG BELOW BEFORE SUBMITTING 
+    # Stuff added to initialization: check valid word lengths; checks if starting position goes off the board
+    # (checks the first position, others are checked when we call the function get position); checks if the board 
+    # is covered. This covers the 3 things they gave and it adds a few other things I think we were missing. 
 
     def theme(self) -> str:
         """
