@@ -190,8 +190,8 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
                 x: int
                 y: int
                 x, y = event.pos
-                col: int = x // CELL_SIZE
-                row: int = y // CELL_SIZE
+                col: int = (x - FRAME) // CELL_SIZE
+                row: int = (y - FRAME) // CELL_SIZE
                 cell_pos = Pos(row, col)
 
                 if 0 <= row < rows and 0 <= col < cols:
@@ -222,13 +222,13 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
                 x: int
                 y: int        
                 x, y = event.pos
-                col = x // CELL_SIZE
-                row = y // CELL_SIZE
+                col = (x - FRAME) // CELL_SIZE
+                row = (y - FRAME) // CELL_SIZE
                 cell_pos = Pos(row, col)
 
                 if 0 <= row < rows and 0 <= col < cols:
-                    center_x = col * CELL_SIZE + CELL_SIZE // 2
-                    center_y = row * CELL_SIZE + CELL_SIZE // 2
+                    center_x = FRAME + col * CELL_SIZE + CELL_SIZE // 2
+                    center_y = FRAME + row * CELL_SIZE + CELL_SIZE // 2
                     dist = math.hypot(x - center_x, y - center_y)
                     
                     if dist < CELL_SIZE * 0.4:
