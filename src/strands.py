@@ -487,6 +487,8 @@ class StrandsGame(StrandsGameBase):
                     self._found.append(strand)
                     if self._active_hint and self._active_hint[0] == idx:
                         self._active_hint = None
+                        self._hint_meter = 0
+                    # Need to clear hint meter if u find the word
                     
                     return (w, True)
                 
