@@ -109,7 +109,7 @@ def main(art, frame, width, height):
         gui.run_event_loop()
     else:
         if frame is None or width is None or height is None:
-            click.echo("Missing options: --frame, --width, and --height are required unless using cat4/trees.")
+            click.echo("Missing options: --frame, --width, and --height are required unless using cat4.")
             return
         gui = GUIStub(cls(frame), width, height)
         gui.run_event_loop()

@@ -143,7 +143,7 @@ def main(art, frame, width, height):
 
     cls = supported[art]
 
-    if art in {"cat4", "steak", "special"}:
+    if art in {"cat4", "special"}:
         tui = cls(0, 20)
         tui.print_frame(10)
     else:
