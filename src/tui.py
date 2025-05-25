@@ -16,6 +16,7 @@ import os
 from strands import Pos, Strand, Board, StrandsGame
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
 from art_tui import ArtTUIBase, ArtTUISpecial, ArtTUIWrappers, ArtTUICat1, ArtTUICat2
+from ui import ArtTUIStub
 
 key_Enter: int = 13
 key_Esc: int = 27
@@ -233,7 +234,7 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
     frame.print_right_bar()
     frame.print_bottom_edge()
 
-def play_game(game_file: str, show: bool = False, 
+def play_game(game_file: str, frame: ArtTUIBase, show: bool = False,
               hint_threshold: int = 3) -> None:
     """
     Allows for the game to be run in the terminal.
@@ -244,8 +245,7 @@ def play_game(game_file: str, show: bool = False,
     board: Board = game.board()
     rows: int = board.num_rows()
     columns: int = board.num_cols()
-    frame = ArtTUIWrappers(1, 4 * (columns - 1) + 1)
-
+    
     if show: 
         connections = []
         for _, strand in game.answers():
@@ -315,45 +315,66 @@ def play_game(game_file: str, show: bool = False,
 
 
 @click.command()
-@click.option('--show', is_flag=True, 
-              help="Show the answers instead of playing the game.")
-@click.option('--special', is_flag=True,
-              help="Play the custom game with the special frame.")
-@click.option('-g','--game', 'game', type=str,
-              help="Game to load (e.g. cs-142). Random if not provided.")
-@click.option('-h','--hint',  'hint',
-              type=int, default=3, show_default=True,
-              help="Hint threshold (default: 3).")
-@click.option('-a','--art',   'art',
-              type=click.Choice(['wrappers','cat1','cat2']),
-              help="Art frame to use (ex: stub, cat1).")
-
-
-def main(show: bool, special: bool, game: str | None, hint: int, art: str):
+@click.option("--show",    is_flag=True, help="Show the answers instead of playing the game.")
+@click.option("--special", is_flag=True, help="Play the custom game.")
+@click.option(
+    "-g",
+    "--game",
+    "game",
+    type=str,
+    help="Game to load (e.g. cs-142). Loads a random game if not provided.",
+)
+@click.option(
+    "-h",
+    "--hint",
+    "hint",
+    type=int,
+    default=3,
+    show_default=True,
+    help="Hint threshold (default: 3).",
+)
+@click.option(
+    "-a",
+    "--art",
+    "art",
+    type=click.Choice(["wrappers", "cat1", "cat2"]),
+    help="Art frame to use (ex: stub, cat1). Supports wrappers, cat1, and cat2. Uses stubs if not provided.",
+)
+def main(show: bool, special: bool, game: str | None, hint: int, art: str | None):
     if special:
-        game_file = os.path.join("assets","Customized.txt")
-        frame = ArtTUISpecial(1, 4*5 + 1)
-        play_game(game_file, show=show, hint_threshold=hint)
+        game_file = os.path.join("assets", "Customized.txt")
     else:
-        boards_dir = "boards"
+        board = "boards"
         try:
-            all_files = os.listdir(boards_dir)
+            files = os.listdir(board)
         except OSError:
-            click.echo(f"Cannot list '{boards_dir}' directory", err=True)
+            click.echo(f"Cannot list '{board}'", err=True)
             sys.exit(1)
-        games = [fn[:-4] for fn in all_files if fn.lower().endswith(".txt")]
+        games = [f[:-4] for f in files if f.lower().endswith(".txt")]
         if not games:
-            click.echo(f"No .txt files found in '{boards_dir}'", err=True)
+            click.echo(f"No .txt files in '{board}'", err=True)
             sys.exit(1)
-        if game is None or game not in games:
-            if game is not None and game not in games:
-                click.echo(f"Unknown game '{game}', selecting a random one.", err=True)
-            game_to_load = random.choice(games)
-        else:
-            game_to_load = game
-        filename = os.path.join(boards_dir, f"{game_to_load}.txt")
-        play_game(filename, show=show, hint_threshold=hint)
+        if not game or game not in games:
+            if game:
+                click.echo(f"Unknown game '{game}', picking random.", err=True)
+            game = random.choice(games)
+        game_file = os.path.join(board, f"{game}.txt")
 
+    game = StrandsGame(game_file, hint)
+    interior = 4 * (game.board().num_cols() - 1) + 1
+
+    if special:
+        frame = ArtTUISpecial(1, interior)
+    elif art == "wrappers":
+        frame = ArtTUIWrappers(1, interior)
+    elif art == "cat1":
+        frame = ArtTUICat1(1, interior)
+    elif art == "cat2":
+        frame = ArtTUICat2(1, interior)
+    else:
+        frame = ArtTUIStub(1, interior)
+
+    play_game(game_file, frame, show=show, hint_threshold=hint)
 
 if __name__ == "__main__":
     main()

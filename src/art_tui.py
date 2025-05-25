@@ -1,6 +1,7 @@
 import sys
 import click
 from ui import ArtTUIBase, TUIStub
+import random
 
 CHARS = ['#', '@', '%', '=', '+', '.']
 
@@ -9,6 +10,7 @@ blue: str = "\033[34m"
 green: str = "\033[32m"
 red: str = "\033[31m"
 pink: str = "\033[35m"
+colors = [blue, green, red, pink]
 # was gonna add smth with colors to the special but will lowkey do this later
 
 class ArtTUIWrappers(ArtTUIBase):
@@ -150,20 +152,24 @@ class ArtTUISpecial(ArtTUIBase):
         self.interior_width = interior_width
     
     def print_top_edge(self) -> None:
-        pattern: str = "S T E A K"
-        pad: str = max(0, self.interior_width - len(pattern))
-        print("# " + pattern + " " * pad + " #")
+        pattern: str = "SPECIAL STUFF"
+        pad: str = max(0, self.interior_width - len(pattern) - 1)
+        color = random.choice(colors)
+        print(color + "# " + pattern + " " * pad + " #" + reset)
 
     def print_bottom_edge(self) -> None:
-        pattern = "S H I R T"
-        pad = max(0, self.interior_width - len(pattern))
-        print("# " + pattern + " " * pad + " #")
+        pattern = "SPECIAL STUFF"
+        pad = max(0, self.interior_width - len(pattern) - 1)
+        color = random.choice(colors)
+        print(color + "# " + pattern + " " * pad + " #" + reset)
     
     def print_left_bar(self) -> None:
-        print("#", end="")
+        color = random.choice(colors)
+        print(color + "#" + reset, end="")
 
     def print_right_bar(self) -> None:
-        print("#")
+        color = random.choice(colors)
+        print(color + "#" + reset)
 
     def print_frame(self, height: int) -> None:
         for row in range(height):
