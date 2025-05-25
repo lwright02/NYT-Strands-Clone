@@ -162,7 +162,7 @@ def test_load_game_face_time_variations() -> None:
 
     game = StrandsGame(lines)
 
-    assert game.theme() == '"Face time"'
+    assert game.theme() == '"face time"'
     assert game.board().num_rows() == 8
     assert game.board().num_cols() == 6
     assert len(game.answers()) == 6
@@ -370,7 +370,7 @@ def test_load_game_directions_variations() -> None:
 
     game = StrandsGame(lines)
 
-    assert game.theme() == '"Directions"'
+    assert game.theme() == '"directions"'
     assert game.board().num_rows() == 7
     assert game.board().num_cols() == 4
     assert len(game.answers()) == 5
