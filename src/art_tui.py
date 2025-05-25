@@ -73,17 +73,14 @@ class ArtTUICat1(ArtTUIBase):
             print(line)
 
     def print_left_bar(self) -> None:
-        for row in range(self.interior_height):
-            for col in range(self.frame_width):
-                print(self._get_pattern_char(col), end="")
-            print()
+        for col in range(self.frame_width):
+            print(self._get_pattern_char(col), end="")
 
     def print_right_bar(self) -> None:
         offset = self.frame_width + self.interior_width
-        for row in range(self.interior_height):
-            for col in range(self.frame_width):
-                print(self._get_pattern_char(offset + col), end="")
-            print()
+        for col in range(self.frame_width):
+            print(self._get_pattern_char(offset + col), end="")
+        print()
 
     def print_frame(self, height: int) -> None:
         self.interior_height = height
@@ -100,6 +97,7 @@ class ArtTUICat2(ArtTUIBase):
         self.frame_width = frame_width
         self.interior_width = interior_width
         self.interior_height = 0
+        self._current_row = 0
 
     def _get_pattern_char(self, row: int, col: int) -> str:
         if (row + col) % 4 == 0:
@@ -110,39 +108,41 @@ class ArtTUICat2(ArtTUIBase):
             return " "
 
     def print_top_edge(self) -> None:
-        for i in range(self.frame_width):
+        total_width = self.interior_width + 2 * self.frame_width
+        for row in range(self.frame_width):
             line = ""
-            for j in range(self.interior_width + 2 * self.frame_width):
-                line += self._get_pattern_char(i, j)
+            for col in range(total_width):
+                line += self._get_pattern_char(row, col)
             print(line)
 
     def print_bottom_edge(self) -> None:
-        start_row = self.frame_width + self.interior_width
-        for i in range(self.frame_width):
+        total_width = self.interior_width + 2 * self.frame_width
+        start_row = self.frame_width + self.interior_height
+        for row in range(self.frame_width):
             line = ""
-            for j in range(self.interior_width + 2 * self.frame_width):
-                line += self._get_pattern_char(start_row + i, j)
+            for col in range(total_width):
+                line += self._get_pattern_char(start_row + row, col)
             print(line)
 
     def print_left_bar(self) -> None:
-        for row in range(self.interior_height):
-            for i in range(self.frame_width):
-                print(self._get_pattern_char(row + self.frame_width, i), end="")
-            print()
+        visual_row = self._current_row + self.frame_width
+        for col in range(self.frame_width):
+            print(self._get_pattern_char(visual_row, col), end="")
 
     def print_right_bar(self) -> None:
+        visual_row = self._current_row + self.frame_width
         offset = self.frame_width + self.interior_width
-        for row in range(self.interior_height):
-            for i in range(self.frame_width):
-                print(self._get_pattern_char(row + self.frame_width, offset + i), end="")
-            print()
+        for col in range(self.frame_width):
+            print(self._get_pattern_char(visual_row, offset + col), end="")
+        print()
 
     def print_frame(self, height: int) -> None:
         self.interior_height = height
         self.print_top_edge()
         for row in range(height):
+            self._current_row = row
             line = ""
-            for col in range(self.interior_width + 2 * self.frame_width):
+            for col in range(self.frame_width * 2 + self.interior_width):
                 line += self._get_pattern_char(row + self.frame_width, col)
             print(line)
         self.print_bottom_edge()
