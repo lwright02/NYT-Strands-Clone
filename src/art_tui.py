@@ -53,7 +53,7 @@ class ArtTUICat1(ArtTUIBase):
     def __init__(self, frame_width: int, interior_width: int):
         self.frame_width = frame_width
         self.interior_width = interior_width
-        self.interior_height = 0  # Will be set in print_frame
+        self.interior_height = 0
 
     def _get_pattern_char(self, col: int) -> str:
         return '|' if col % 2 == 0 else ' '
@@ -65,7 +65,7 @@ class ArtTUICat1(ArtTUIBase):
                 line += self._get_pattern_char(col)
             print(line)
 
-    def print_bottom_edge(self, start_row: int) -> None:
+    def print_bottom_edge(self) -> None:
         for row in range(self.frame_width):
             line = ""
             for col in range(self.interior_width + 2 * self.frame_width):
@@ -93,12 +93,13 @@ class ArtTUICat1(ArtTUIBase):
             for col in range(self.frame_width + self.interior_width + self.frame_width):
                 line += self._get_pattern_char(col)
             print(line)
-        self.print_bottom_edge(height + self.frame_width)
+        self.print_bottom_edge()
 
 class ArtTUICat2(ArtTUIBase):
     def __init__(self, frame_width: int, interior_width: int):
         self.frame_width = frame_width
         self.interior_width = interior_width
+        self.interior_height = 0
 
     def _get_pattern_char(self, row: int, col: int) -> str:
         if (row + col) % 4 == 0:
@@ -137,7 +138,7 @@ class ArtTUICat2(ArtTUIBase):
             print()
 
     def print_frame(self, height: int) -> None:
-        self.interior_height = height  # Save for use in left/right bars
+        self.interior_height = height
         self.print_top_edge()
         for row in range(height):
             line = ""
