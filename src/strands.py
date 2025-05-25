@@ -357,6 +357,7 @@ class StrandsGame(StrandsGameBase):
         self._hint_threshold: int = hint_threshold
         self._hint_meter: int = 0
         self._active_hint: tuple[int, bool] | None = None
+        self._bonus_words = set()
 
     # DELETE THIS MSG BELOW BEFORE SUBMITTING 
     # Stuff added to initialization: check valid word lengths; checks if starting position goes off the board
@@ -487,13 +488,18 @@ class StrandsGame(StrandsGameBase):
                     self._found.append(strand)
                     if self._active_hint and self._active_hint[0] == idx:
                         self._active_hint = None
-                        self._hint_meter = 0
-                    # Need to clear hint meter if u find the word
+                    # Need to clear hint stuff if you find the word
                     
                     return (w, True)
                 
         if word not in self._dictionary:
             return "Not in word list"
+        
+        else:
+            if word not in self._bonus_words:
+                self._bonus_words.add(word)
+                self._hint_meter += 1
+        # Adding one to the hint meter if you submit a word in the list
 
         return (word, False)
 
@@ -523,6 +529,7 @@ class StrandsGame(StrandsGameBase):
             for idx, (_, answer) in enumerate(self._answers):
                 if answer not in self._found:
                     self._active_hint = (idx, False)
+                    self._hint_meter -= self._hint_threshold
                     return self._active_hint
 
             return "Use your current hint"
@@ -530,6 +537,9 @@ class StrandsGame(StrandsGameBase):
         idx, shown_end = self._active_hint
         if not shown_end:
             self._active_hint = (idx, True)
+            self._hint_meter -= self._hint_threshold
             return self._active_hint
+        
+        self._hint_meter -= self._hint_threshold
 
         return "Use your current hint"

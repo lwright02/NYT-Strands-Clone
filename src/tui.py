@@ -133,7 +133,7 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
             hint_end.add((hpos[0].r, hpos[0].c))
             hint_end.add((hpos[-1].r, hpos[-1].c))
         else:
-            for p in hpos[1:-1]:
+            for p in hpos:
                 hint_pos.add((p.r, p.c))
 
     found_pos: list[tuple[int, int]] = []
@@ -238,7 +238,7 @@ def play_game(game_file: str, show: bool = False,
     """
     Allows for the game to be run in the terminal.
     """
-    game: StrandsGame = StrandsGame(game_file, hint_threshold = 3)
+    game: StrandsGame = StrandsGame(game_file, hint_threshold)
     current_pos = Pos(0, 0)
     selected = [current_pos]
     board: Board = game.board()
@@ -257,9 +257,9 @@ def play_game(game_file: str, show: bool = False,
 
             update_display(game, game.found_strands(), current_pos, selected, frame)
             key = getch()
-            key_dict = {"1": (-1, -1), "2": (-1, 0), "3": (-1, 1),
+            key_dict = {"7": (-1, -1), "8": (-1, 0), "9": (-1, 1),
                         "4": (0, -1), "6": (0, 1),
-                        "7": (1, -1), "8": (1, 0), "9": (1, 1)}
+                        "1": (1, -1), "2": (1, 0), "3": (1, 1)}
             if key == "q":
                 break
 
@@ -268,16 +268,22 @@ def play_game(game_file: str, show: bool = False,
                 new_r = current_pos.r + dr
                 new_c = current_pos.c + dc
                 if 0 <= new_r < rows and 0 <= new_c < columns:
-                    current_pos = Pos(new_r, new_c)
-                    selected.append(current_pos)
+                    new_pos = Pos(new_r, new_c)
+                    if new_pos in selected:
+                        cut = selected.index(new_pos) + 1
+                        selected = selected[:cut]
+                    else:
+                        selected.append(new_pos)
+                    current_pos = new_pos
 
             elif key == 27:
                 selected = [current_pos]
 
             elif key == "h":
-                if game._hint_meter < game.hint_threshold():
-                    game._hint_meter += 1
+                if game._hint_meter >= game.hint_threshold():
                     game.use_hint()
+                else:
+                    print("Can't use a hint")
                 continue
 
             elif key == 13 or key == "5":
@@ -328,24 +334,25 @@ def main(show: bool, special: bool, game: str | None, hint: int, art: str):
         game_file = os.path.join("assets","Customized.txt")
         frame = ArtTUISpecial(1, 4*5 + 1)
         play_game(game_file, show=show, hint_threshold=hint)
-    boards_dir = "boards"
-    try:
-        all_files = os.listdir(boards_dir)
-    except OSError:
-        click.echo(f"Cannot list '{boards_dir}' directory", err=True)
-        sys.exit(1)
-    games = [fn[:-4] for fn in all_files if fn.lower().endswith(".txt")]
-    if not games:
-        click.echo(f"No .txt files found in '{boards_dir}'", err=True)
-        sys.exit(1)
-    if game is None or game not in games:
-        if game is not None and game not in games:
-            click.echo(f"Unknown game '{game}', selecting a random one.", err=True)
-        game_to_load = random.choice(games)
     else:
-        game_to_load = game
-    filename = os.path.join(boards_dir, f"{game_to_load}.txt")
-    play_game(filename, show=show, hint_threshold=hint)
+        boards_dir = "boards"
+        try:
+            all_files = os.listdir(boards_dir)
+        except OSError:
+            click.echo(f"Cannot list '{boards_dir}' directory", err=True)
+            sys.exit(1)
+        games = [fn[:-4] for fn in all_files if fn.lower().endswith(".txt")]
+        if not games:
+            click.echo(f"No .txt files found in '{boards_dir}'", err=True)
+            sys.exit(1)
+        if game is None or game not in games:
+            if game is not None and game not in games:
+                click.echo(f"Unknown game '{game}', selecting a random one.", err=True)
+            game_to_load = random.choice(games)
+        else:
+            game_to_load = game
+        filename = os.path.join(boards_dir, f"{game_to_load}.txt")
+        play_game(filename, show=show, hint_threshold=hint)
 
 
 if __name__ == "__main__":
