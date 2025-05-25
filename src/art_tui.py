@@ -4,6 +4,13 @@ from ui import ArtTUIBase, TUIStub
 
 CHARS = ['#', '@', '%', '=', '+', '.']
 
+reset: str = "\033[0m"
+blue: str = "\033[34m"
+green: str = "\033[32m"
+red: str = "\033[31m"
+pink: str = "\033[35m"
+# was gonna add smth with colors to the special but will lowkey do this later
+
 class ArtTUIWrappers(ArtTUIBase):
     def __init__(self, frame_width: int, interior_width: int):
         self.frame_width = frame_width
