@@ -156,8 +156,6 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
     surface: pygame.Surface = pygame.display.set_mode((surface_width, 
         surface_height))
     clock: pygame.time.Clock = pygame.time.Clock()
-    answers: list[tuple[str, StrandBase]] = game.answers()
-    return_key_index: int = 0
 
     mouse_down = False
     mouse_moved = False
@@ -175,10 +173,6 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
                     running = False
                 
                 if not show:
-
-                    if event.key == pygame.K_RETURN:
-                        game.submit_strand(answers[return_key_index][1])
-                        return_key_index += 1
 
                     if event.key == pygame.K_ESCAPE:
                         currently_selected.clear()
@@ -299,7 +293,7 @@ def main(show: bool, game: str | None, hint: int, art: str):
     
     if art == "stub":
         art_frame = ArtGUIStub(frame_width=15)
-    elif art == "9slices":
+    elif art == "9slices" or art == "cat0":
         art_frame = ArtGUI9Slice(frame_width=15)
     elif art == "cat3":
         art_frame = ArtGUICat3(frame_width=15)
@@ -308,7 +302,6 @@ def main(show: bool, game: str | None, hint: int, art: str):
     else:
         print(f"Art frame '{art}' not supported in GUI.")
         sys.exit(1)
-
 
     run_game(filename, show=show, hint_threshold=hint, art = art_frame)
 
