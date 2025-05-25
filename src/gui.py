@@ -81,6 +81,8 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase,
 
     # Draws the hints on the board only if the hint meter allows
     active_hint: tuple[int, bool] | None = strands.active_hint()
+    hint_meter = strands.hint_meter()
+    hint_threshold = strands.hint_threshold()
     if active_hint is not None:
         index: int
         ends: bool
@@ -121,8 +123,8 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase,
             surface.blit(letter_surface, letter_rect)
 
     # Adds/Updates the "found" phrase on the bottom
-    hint_surface: pygame.Surface = font.render(f"Found {len(
-        strands.found_strands())}/{len(strands.answers())} Use Hint", True, 
+    hint_surface: pygame.Surface = font.render(f"Found: {len(
+        strands.found_strands())}/{len(strands.answers())} | Hint Meter: {hint_meter}/{hint_threshold}", True, 
         COLORS["BLACK"])
     hint_rect: pygame.Rect = hint_surface.get_rect(center = (
         surface_width //2, 
@@ -155,9 +157,9 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
         surface_height))
     clock: pygame.time.Clock = pygame.time.Clock()
     answers: list[tuple[str, StrandBase]] = game.answers()
-    return_key_index: int = 0
 
     mouse_down = False
+    mouse_moved = False
     running = True
     while running:
         events = pygame.event.get()
@@ -172,10 +174,6 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
                     running = False
                 
                 if not show:
-
-                    if event.key == pygame.K_RETURN:
-                        game.submit_strand(answers[return_key_index][1])
-                        return_key_index += 1
 
                     if event.key == pygame.K_ESCAPE:
                         currently_selected.clear()
@@ -195,14 +193,47 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
                 cell_pos = Pos(row, col)
 
                 if 0 <= row < rows and 0 <= col < cols:
-                    currently_selected.clear()
-                    currently_selected.append(cell_pos)
+                    if not currently_selected:
+                        currently_selected.append(cell_pos)
+                    else:
+                        last_pos: Pos = currently_selected[-1]
+                        if cell_pos == last_pos:
+                            if len(currently_selected) >= 2:
+                                start: Pos = currently_selected[0]
+                                steps: list[Step] = [
+                                    currently_selected[i].step_to(
+                                    currently_selected[i + 1]) for i in 
+                                    range(len(currently_selected) - 1)]
+                                strand = Strand(start, steps)
+
+                                match = False
+                                for word, answer_strand in answers:
+                                    if board.evaluate_strand(strand) == word:
+                                        game.submit_strand(answer_strand)
+                                        match = True
+                                        break
+
+                                if not match:
+                                    game.submit_strand(strand)
+
+                                currently_selected.clear()
+
+                        elif cell_pos in currently_selected:
+                            index: int = currently_selected.index(cell_pos)
+                            currently_selected = currently_selected[:index + 1]
+
+                        else:
+                            if cell_pos.is_adjacent_to(last_pos):
+                                currently_selected.append(cell_pos)
+
+                            else:
+                                currently_selected = [cell_pos]
                     mouse_down = True
 
             elif event.type == pygame.MOUSEBUTTONUP and not show:
                     mouse_down = False
 
-                    if len(currently_selected) >= 2:
+                    if len(currently_selected) >= 2 and mouse_moved:
                         start: Pos = currently_selected[0]
                         steps: list[Step] = [
                             currently_selected[i].step_to(
@@ -210,13 +241,19 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
                             range(len(currently_selected) - 1)]
                         strand = Strand(start, steps)
 
-                        answer: StrandBase
-                        for answer, answer_pos in answers:
-                            if board.evaluate_strand(strand) == answer:
-                                game.submit_strand(answer_pos)
-                                currently_selected.clear()
+                        match = False
+                        for word, answer_strand in answers:
+                            if board.evaluate_strand(strand) == word:
+                                game.submit_strand(answer_strand)
+                                match = True
                                 break
-                    currently_selected.clear()
+
+                        if not match:
+                            game.submit_strand(strand)
+
+                        currently_selected.clear()
+
+                    mouse_moved = False
 
             elif event.type == pygame.MOUSEMOTION and mouse_down and not show:    
                 x: int
@@ -232,6 +269,7 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
                     dist = math.hypot(x - center_x, y - center_y)
                     
                     if dist < CELL_SIZE * 0.4:
+                        mouse_moved = True
                         if not currently_selected:
                             currently_selected.append(cell_pos)
                         else:
@@ -275,7 +313,7 @@ def main(show: bool, game: str | None, hint: int, art: str):
     
     if art == "stub":
         art_frame = ArtGUIStub(frame_width=15)
-    elif art == "9slices":
+    elif art == "9slices" or art == "cat0":
         art_frame = ArtGUI9Slice(frame_width=15)
     elif art == "cat3":
         art_frame = ArtGUICat3(frame_width=15)
@@ -284,7 +322,6 @@ def main(show: bool, game: str | None, hint: int, art: str):
     else:
         print(f"Art frame '{art}' not supported in GUI.")
         sys.exit(1)
-
 
     run_game(filename, show=show, hint_threshold=hint, art = art_frame)
 
