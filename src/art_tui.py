@@ -53,13 +53,15 @@ class ArtTUICat1(ArtTUIBase):
         self.interior_width = interior_width
 
     def print_top_edge(self) -> None:
-        pass
+        top = "-" * (self.frame_width)
+        print(top)
     def print_bottom_edge(self) -> None:
-        pass
+        bottom = "-" * (self.frame_width)
+        print(bottom)
     def print_left_bar(self) -> None:
-        pass
+        print("|")
     def print_right_bar(self) -> None:
-        pass
+        print("|")
 
     def print_frame(self, height: int) -> None:
         for row in range(height):
