@@ -39,7 +39,7 @@ class Pos(PosBase):
 
         return Pos(self.r + row_dif, self.c + col_dif)
 
-    def step_to(self, other: "Pos") -> Step:
+    def step_to(self, other: PosBase) -> Step:
         """
         See ABC docstring.
         """
@@ -55,7 +55,7 @@ class Pos(PosBase):
 
         raise ValueError("More than 1 Step Away")
 
-    def is_adjacent_to(self, other: "Pos") -> bool:
+    def is_adjacent_to(self, other: PosBase) -> bool:
         """
         See ABC docstring.
         """
@@ -84,7 +84,7 @@ class Strand(StrandBase):
         self.start = start
         self.steps = steps
 
-    def positions(self) -> list[Pos]:
+    def positions(self) -> list[PosBase]:
         """
         See ABC docstring.
         """
@@ -172,7 +172,7 @@ class Board(BoardBase):
 
         return self.letters[row][col]
 
-    def evaluate_strand(self, strand: Strand) -> str:
+    def evaluate_strand(self, strand: StrandBase) -> str:
         """
         See ABC docstring.
         """
@@ -357,7 +357,7 @@ class StrandsGame(StrandsGameBase):
         self._hint_threshold: int = hint_threshold
         self._hint_meter: int = 0
         self._active_hint: tuple[int, bool] | None = None
-        self._bonus_words = set()
+        self._bonus_words: set[str] = set()
 
     # DELETE THIS MSG BELOW BEFORE SUBMITTING 
     # Stuff added to initialization: check valid word lengths; checks if starting position goes off the board

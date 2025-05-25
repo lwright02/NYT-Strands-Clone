@@ -142,7 +142,7 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
     found_pos: list[tuple[int, int]] = []
     for strand in connections:
         for p in strand.positions():
-            coord = (p.r, p.c)
+            coord: tuple[int, int] = (p.r, p.c)
             if coord not in found_pos:
                 found_pos.append(coord)
 
