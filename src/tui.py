@@ -13,6 +13,8 @@ import tty
 import click
 import random
 import os
+import re
+ANSI_ESCAPE_PATTERN = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
 from strands import Pos, Strand, Board, StrandsGame
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
 from art_tui import ArtTUIBase, ArtTUISpecial, ArtTUIWrappers, ArtTUICat1, ArtTUICat2
@@ -219,6 +221,7 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
     hint_threshold = strands.hint_threshold()
     footer_text = f"Found {found_count}/{total}  Hint {hint_meter}/{hint_threshold}"
     
+    frame.interior_width = len(ANSI_ESCAPE_PATTERN.sub('', rows_and_connectors[0][0]))
     frame.print_top_edge()
     for row_line, between_line in rows_and_connectors:
         frame.print_left_bar()
@@ -368,9 +371,9 @@ def main(show: bool, special: bool, game: str | None, hint: int, art: str | None
     elif art == "wrappers":
         frame = ArtTUIWrappers(1, interior)
     elif art == "cat1":
-        frame = ArtTUICat1(1, interior)
+        frame = ArtTUICat1(3, interior)
     elif art == "cat2":
-        frame = ArtTUICat2(1, interior)
+        frame = ArtTUICat2(3, interior)
     else:
         frame = ArtTUIStub(1, interior)
 
