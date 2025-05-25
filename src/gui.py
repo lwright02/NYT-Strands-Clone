@@ -156,6 +156,7 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
     surface: pygame.Surface = pygame.display.set_mode((surface_width, 
         surface_height))
     clock: pygame.time.Clock = pygame.time.Clock()
+    answers: list[tuple[str, StrandBase]] = game.answers()
 
     mouse_down = False
     mouse_moved = False
@@ -204,7 +205,17 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
                                     currently_selected[i + 1]) for i in 
                                     range(len(currently_selected) - 1)]
                                 strand = Strand(start, steps)
-                                game.submit_strand(strand)
+
+                                match = False
+                                for word, answer_strand in answers:
+                                    if board.evaluate_strand(strand) == word:
+                                        game.submit_strand(answer_strand)
+                                        match = True
+                                        break
+
+                                if not match:
+                                    game.submit_strand(strand)
+
                                 currently_selected.clear()
 
                         elif cell_pos in currently_selected:
@@ -230,7 +241,16 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
                             range(len(currently_selected) - 1)]
                         strand = Strand(start, steps)
 
-                        game.submit_strand(strand)
+                        match = False
+                        for word, answer_strand in answers:
+                            if board.evaluate_strand(strand) == word:
+                                game.submit_strand(answer_strand)
+                                match = True
+                                break
+
+                        if not match:
+                            game.submit_strand(strand)
+
                         currently_selected.clear()
 
                     mouse_moved = False
