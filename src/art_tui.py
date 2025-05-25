@@ -59,9 +59,9 @@ class ArtTUICat1(ArtTUIBase):
         bottom = "-" * (self.frame_width)
         print(bottom)
     def print_left_bar(self) -> None:
-        print("|")
+        print("|", end="")
     def print_right_bar(self) -> None:
-        print("|")
+        print("|", end="")
 
     def print_frame(self, height: int) -> None:
         for row in range(height):
