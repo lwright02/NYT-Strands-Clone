@@ -51,53 +51,98 @@ class ArtTUICat1(ArtTUIBase):
     def __init__(self, frame_width: int, interior_width: int):
         self.frame_width = frame_width
         self.interior_width = interior_width
+        self.interior_height = 0  # Will be set in print_frame
+
+    def _get_pattern_char(self, col: int) -> str:
+        return '|' if col % 2 == 0 else ' '
 
     def print_top_edge(self) -> None:
-        top = "-" * (self.frame_width)
-        print(top)
-    def print_bottom_edge(self) -> None:
-        bottom = "-" * (self.frame_width)
-        print(bottom)
-    def print_left_bar(self) -> None:
-        print("|", end="")
-    def print_right_bar(self) -> None:
-        print("|", end="")
-
-    def print_frame(self, height: int) -> None:
-        for row in range(height):
+        for row in range(self.frame_width):
             line = ""
             for col in range(self.interior_width + 2 * self.frame_width):
-                if col % 2 == 0:
-                    line += '|'
-                else:
-                    line += ' '
+                line += self._get_pattern_char(col)
             print(line)
+
+    def print_bottom_edge(self, start_row: int) -> None:
+        for row in range(self.frame_width):
+            line = ""
+            for col in range(self.interior_width + 2 * self.frame_width):
+                line += self._get_pattern_char(col)
+            print(line)
+
+    def print_left_bar(self) -> None:
+        for row in range(self.interior_height):
+            for col in range(self.frame_width):
+                print(self._get_pattern_char(col), end="")
+            print()
+
+    def print_right_bar(self) -> None:
+        offset = self.frame_width + self.interior_width
+        for row in range(self.interior_height):
+            for col in range(self.frame_width):
+                print(self._get_pattern_char(offset + col), end="")
+            print()
+
+    def print_frame(self, height: int) -> None:
+        self.interior_height = height
+        self.print_top_edge()
+        for row in range(height):
+            line = ""
+            for col in range(self.frame_width + self.interior_width + self.frame_width):
+                line += self._get_pattern_char(col)
+            print(line)
+        self.print_bottom_edge(height + self.frame_width)
 
 class ArtTUICat2(ArtTUIBase):
     def __init__(self, frame_width: int, interior_width: int):
         self.frame_width = frame_width
         self.interior_width = interior_width
 
+    def _get_pattern_char(self, row: int, col: int) -> str:
+        if (row + col) % 4 == 0:
+            return "/"
+        elif (row - col) % 4 == 0:
+            return "\\"
+        else:
+            return " "
+
     def print_top_edge(self) -> None:
-        pass
+        for i in range(self.frame_width):
+            line = ""
+            for j in range(self.interior_width + 2 * self.frame_width):
+                line += self._get_pattern_char(i, j)
+            print(line)
+
     def print_bottom_edge(self) -> None:
-        pass
+        start_row = self.frame_width + self.interior_width
+        for i in range(self.frame_width):
+            line = ""
+            for j in range(self.interior_width + 2 * self.frame_width):
+                line += self._get_pattern_char(start_row + i, j)
+            print(line)
+
     def print_left_bar(self) -> None:
-        pass
+        for row in range(self.interior_height):
+            for i in range(self.frame_width):
+                print(self._get_pattern_char(row + self.frame_width, i), end="")
+            print()
+
     def print_right_bar(self) -> None:
-        pass
+        offset = self.frame_width + self.interior_width
+        for row in range(self.interior_height):
+            for i in range(self.frame_width):
+                print(self._get_pattern_char(row + self.frame_width, offset + i), end="")
+            print()
 
     def print_frame(self, height: int) -> None:
+        self.interior_height = height  # Save for use in left/right bars
+        self.print_top_edge()
         for row in range(height):
             line = ""
             for col in range(self.interior_width + 2 * self.frame_width):
-                if (row + col) % 4 == 0:
-                    line += "/"
-                elif (row - col) % 4 == 0:
-                    line += "\\"
-                else:
-                    line += " "
+                line += self._get_pattern_char(row + self.frame_width, col)
             print(line)
+        self.print_bottom_edge()
 
 class ArtTUISpecial(ArtTUIBase):
     def __init__(self, frame_width: int, interior_width: int):
