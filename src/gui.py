@@ -123,16 +123,26 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase,
             surface.blit(letter_surface, letter_rect)
 
     # Adds/Updates the "found" phrase on the bottom
-    hint_surface: pygame.Surface = font.render(f"Found: {len(
-        strands.found_strands())}/{len(strands.answers())} | Hint Meter: {hint_meter}/{hint_threshold}", True, 
-        COLORS["BLACK"])
-    hint_rect: pygame.Rect = hint_surface.get_rect(center = (
-        surface_width //2, 
-        surface_height - (0.5 * CELL_SIZE) - FRAME)
-        )
-    pygame.draw.rect(surface, COLORS["WHITE"], hint_rect.inflate(20, 10))
-    surface.blit(hint_surface, hint_rect)
+    status1 = f"Found: {len(strands.found_strands())}/{len(strands.answers())}  |  Hint Meter: {hint_meter}/{hint_threshold}"
+    surf1 = font.render(status1, True, COLORS["BLACK"])
+    rect1 = surf1.get_rect(center=(
+        surface_width // 2,
+        surface_height - (0.75 * CELL_SIZE) - FRAME
+    ))
+    # draw background behind line 1
+    pygame.draw.rect(surface, COLORS["WHITE"], rect1.inflate(20, 10))
+    surface.blit(surf1, rect1)
 
+    # Second line: Score
+    score_text = f"Score: {strands.get_score()}"
+    surf2 = font.render(score_text, True, COLORS["BLACK"])
+    # place it just below the first line
+    rect2 = surf2.get_rect(midtop=(
+        surface_width // 2,
+        rect1.bottom + 5
+    ))
+    pygame.draw.rect(surface, COLORS["WHITE"], rect2.inflate(20, 10))
+    surface.blit(surf2, rect2)
 
 def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: ArtGUIBase | None = None) -> None:
     """

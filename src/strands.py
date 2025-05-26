@@ -1,5 +1,5 @@
 """
-Game logic for Milestone 2:
+Game logic for Milestone 3:
 Pos, Strand, Board, StrandsGame
 """
 import os
@@ -358,6 +358,7 @@ class StrandsGame(StrandsGameBase):
         self._hint_meter: int = 0
         self._active_hint: tuple[int, bool] | None = None
         self._bonus_words: set[str] = set()
+        self._score: int = 0
 
     # DELETE THIS MSG BELOW BEFORE SUBMITTING 
     # Stuff added to initialization: check valid word lengths; checks if starting position goes off the board
@@ -474,6 +475,7 @@ class StrandsGame(StrandsGameBase):
         """
         positions = strand.positions()
         if len(positions) < 3:
+            self._score -= 2
             return "Too short"
 
         word = self._board.evaluate_strand(strand).lower()
@@ -485,6 +487,8 @@ class StrandsGame(StrandsGameBase):
                     if answer_strand in self._found:
                         return "Already found"
                     
+                    self._score += 10
+                    
                     self._found.append(strand)
                     if self._active_hint and self._active_hint[0] == idx:
                         self._active_hint = None
@@ -493,6 +497,7 @@ class StrandsGame(StrandsGameBase):
                     return (w, True)
                 
         if word not in self._dictionary:
+            self._score -= 2
             return "Not in word list"
         
         else:
@@ -500,7 +505,7 @@ class StrandsGame(StrandsGameBase):
                 self._bonus_words.add(word)
                 self._hint_meter += 1
         # Adding one to the hint meter if you submit a word in the list
-
+                self._score += 5
         return (word, False)
 
     def use_hint(self) -> tuple[int, bool] | str:
@@ -526,6 +531,7 @@ class StrandsGame(StrandsGameBase):
             first and last letters are being displayed.
         """
         if self._active_hint is None:
+            self._score -= 5
             for idx, (_, answer) in enumerate(self._answers):
                 if answer not in self._found:
                     self._active_hint = (idx, False)
@@ -536,6 +542,7 @@ class StrandsGame(StrandsGameBase):
 
         idx, shown_end = self._active_hint
         if not shown_end:
+            self._score -= 5
             self._active_hint = (idx, True)
             self._hint_meter -= self._hint_threshold
             return self._active_hint
@@ -543,3 +550,9 @@ class StrandsGame(StrandsGameBase):
         self._hint_meter -= self._hint_threshold
 
         return "Use your current hint"
+    
+    def get_score(self) -> int:
+        """
+        Return the player’s current score.
+        """
+        return self._score

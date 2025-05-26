@@ -151,3 +151,43 @@ def test_hint_clears_and_advances_after_solving_current(dir_game) -> None:
     assert dir_game.active_hint() is None
 
     assert dir_game.use_hint() == (3, False)
+
+
+def test_scoring_face_time(ft_game) -> None:
+    """
+    Check that get_score() is updated correctly for:
+      - non‐theme dictionary words (+5)
+      - too short submissions (–2)
+      - not-in-dictionary submissions (–2)
+      - hint usage (–5)
+      - theme word found (+10)
+    """
+    
+    assert ft_game.get_score() == 0
+
+    # 1) submit "food" (non-theme, in dictionary) → +5
+    assert ft_game.submit_strand(Strand(Pos(6, 1), [Step.S, Step.E, Step.E])) == ("food", False)
+    assert ft_game.get_score() == 5
+
+    # 2) submit too‐short → –2
+    assert ft_game.submit_strand(Strand(Pos(5, 1), [Step.N])) == "Too short"
+    assert ft_game.get_score() == 3
+
+    # 3) submit not in dictionary → –2
+    assert ft_game.submit_strand(Strand(Pos(3, 2), [Step.W, Step.N, Step.W, Step.W])) == "Not in word list"
+    assert ft_game.get_score() == 1
+
+    # 4) submit "bronze" (second non-theme, in dictionary) → +5
+    assert ft_game.submit_strand(
+        Strand(Pos(1, 4), [Step.SE, Step.W, Step.NW, Step.NE, Step.E])
+    ) == ("bronze", False)
+    assert ft_game.get_score() == 6
+
+    # 5) use a hint → –5
+    assert ft_game.use_hint() == (0, False)
+    assert ft_game.get_score() == 1
+
+    # 6) finally submit a theme word → +10
+    word0, strand0 = ft_game.answers()[0]
+    assert ft_game.submit_strand(strand0) == (word0, True)
+    assert ft_game.get_score() == 11
