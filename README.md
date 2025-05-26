@@ -45,7 +45,7 @@ This component received two S scores in Milestone 2.
 
 ### QA
 
-
+This component received two S scores in Milestone 2. 
 
 
 ## Enhancements
