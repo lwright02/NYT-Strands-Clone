@@ -57,7 +57,15 @@ can be found in assets. There is also a customized frame for this game.
 
 ### FEATURE-2
 
-...
+Implemented a full scoring system into the game logic and surfaced it in both GUI and TUI:
+
++10 points for each new theme word found
+
++5 points for each new non-theme dictionary word
+
+–2 points for each “Too short” or “Not in word list” attempt
+
+–5 points each time you use a hint successfully
 
 ### FEATURE-3
 
