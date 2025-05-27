@@ -141,15 +141,15 @@ class ArtTUISpecial(ArtTUIBase):
     
     def print_top_edge(self) -> None:
         pattern: str = "SPECIAL STUFF"
-        pad: int = max(0, self.interior_width - len(pattern) - 1)
+        other: int = max(0, self.interior_width - len(pattern) - 1)
         color = random.choice(colors)
-        print(color + "# " + pattern + " " * pad + " #" + reset)
+        print(color + "# " + pattern + " " * other + " #" + reset)
 
     def print_bottom_edge(self) -> None:
         pattern = "SPECIAL STUFF"
-        pad = max(0, self.interior_width - len(pattern) - 1)
+        other = max(0, self.interior_width - len(pattern) - 1)
         color = random.choice(colors)
-        print(color + "# " + pattern + " " * pad + " #" + reset)
+        print(color + "# " + pattern + " " * other + " #" + reset)
     
     def print_left_bar(self) -> None:
         color = random.choice(colors)
@@ -176,6 +176,7 @@ class ArtTUISpecial(ArtTUIBase):
 @click.option('-f', '--frame', type=int, help="Frame width (characters).")
 @click.option('-w', '--width', type=int, help="Interior width (columns).")
 @click.option('-h', '--height', type=int, help="Interior height (rows).")
+
 def main(art, frame, width, height):
     supported = {
         "wrappers": ArtTUIWrappers,

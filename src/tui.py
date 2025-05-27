@@ -2,10 +2,16 @@
 TUI for Strands
 """
 
-# Remark: The getch function is giving us a mypy error. I went to my TA 
+# Remark I: The getch function is giving us a mypy error. I went to my TA 
 # to ask for help in discussion section, and he tried to help, but we could not
 # resolve the issue. He said it was fine if I submited as is with the mypy 
 # issues. 
+
+# Remark II: We have to define the type of the frame like it is done throughout
+# the code (i.e. not using ArtTUIBase) because we added a few attributes, and
+# we could not addd any attributes to ArtTUIBase (it says to not modify that 
+# file). Thus, we just said it was one of the sub-types, each has our attribute
+# with a type. 
 
 import sys
 import termios
@@ -14,7 +20,9 @@ import click
 import random
 import os
 import re
+
 ANSI_ESCAPE_PATTERN = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
+
 from strands import Pos, Strand, Board, StrandsGame
 from base import Step, PosBase, StrandBase, BoardBase, StrandsGameBase
 from art_tui import ArtTUIBase, ArtTUISpecial, ArtTUIWrappers, ArtTUICat1, ArtTUICat2
@@ -45,9 +53,9 @@ def getch() -> str | int:
     return ch
 
 
-def update_display(strands: StrandsGameBase, connections: list[StrandBase], 
+def update_display(strands: StrandsGame, connections: list[StrandBase], 
                    current_pos: Pos, selected: list[Pos], 
-                   frame: ArtTUIBase) -> None:
+                   frame: ArtTUISpecial | ArtTUIWrappers | ArtTUICat1 | ArtTUICat2 | ArtTUIStub) -> None:
     """
     Given all the words that have been found, this function will print what
     the board looks like at a given time. The found words are highlighted, and
@@ -55,7 +63,7 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
     used at the bottom of the game. There will also be highlighted text and 
     connections to indicate the characters you currently have selected.
     """
-    board: Board = strands.board()
+    board: BoardBase = strands.board()
     rows: int = board.num_rows()
     columns: int = board.num_cols()
     bold: str = "\033[1m"
@@ -176,7 +184,7 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
             else:
                 display = display + " "
             line_chars.append(display)
-        row_line = "".join(line_chars)
+        row_line: str = "".join(line_chars)
 
         between_rows: list[str] = []
         for _ in range(4 * columns - 2):
@@ -245,8 +253,8 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
 
     frame.print_bottom_edge()
 
-def play_game(game_file: str, frame: ArtTUIBase, show: bool = False,
-              hint_threshold: int = 3) -> None:
+def play_game(game_file: str, frame: ArtTUISpecial | ArtTUIWrappers | ArtTUICat1 | ArtTUICat2 | ArtTUIStub, 
+              show: bool = False, hint_threshold: int = 3) -> None:
     """
     Allows for the game to be run in the terminal.
     """
@@ -333,7 +341,7 @@ def play_game(game_file: str, frame: ArtTUIBase, show: bool = False,
     "--game",
     "game",
     type=str,
-    help="Game to load (e.g. cs-142). Loads a random game if not provided.",
+    help="Game to load (ex: cs-142). Loads a random game if not provided.",
 )
 @click.option(
     "-h",
@@ -348,10 +356,10 @@ def play_game(game_file: str, frame: ArtTUIBase, show: bool = False,
     "-a",
     "--art",
     "art",
-    type=click.Choice(["wrappers", "cat0", "cat1", "cat2"]),
+    type=click.Choice(["wrappers", "cat1", "cat2"]),
     help="Art frame to use (ex: stub, cat1). Supports wrappers, cat1, and cat2. Uses stubs if not provided.",
 )
-def main(show: bool, special: bool, game: str | None, hint: int, art: str | None):
+def main(show: bool, special: bool, game: str | None, hint: int, art: str | None) -> None:
     if special:
         game_file = os.path.join("assets", "Customized.txt")
     else:
@@ -371,12 +379,13 @@ def main(show: bool, special: bool, game: str | None, hint: int, art: str | None
             game = random.choice(games)
         game_file = os.path.join(board, f"{game}.txt")
 
-    game = StrandsGame(game_file, hint)
-    interior = 4 * (game.board().num_cols() - 1) + 1
+    strandgame: StrandsGame = StrandsGame(game_file, hint)
+    interior = 4 * (strandgame.board().num_cols() - 1) + 1
 
+    frame: ArtTUISpecial | ArtTUIWrappers | ArtTUICat1 | ArtTUICat2 | ArtTUIStub
     if special:
         frame = ArtTUISpecial(1, interior)
-    elif art == "wrappers" or "cat0":
+    elif art == "wrappers":
         frame = ArtTUIWrappers(1, interior)
     elif art == "cat1":
         frame = ArtTUICat1(3, interior)
