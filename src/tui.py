@@ -220,6 +220,17 @@ def update_display(strands: StrandsGameBase, connections: list[StrandBase],
     hint_meter = strands.hint_meter()
     hint_threshold = strands.hint_threshold()
     footer_text = f"Found {found_count}/{total}  Hint {hint_meter}/{hint_threshold}"
+
+    frame.interior_width = len(ANSI_ESCAPE_PATTERN.sub('', rows_and_connectors[0][0]))
+    frame.print_top_edge()
+    for row_line, between_line in rows_and_connectors:
+        frame.print_left_bar()
+        print(row_line, end="")
+        frame.print_right_bar()
+        if row_line != rows_and_connectors[-1][0]:
+            frame.print_left_bar()
+            print(between_line, end="")
+            frame.print_right_bar()
     
     frame.print_left_bar()
     print(footer_text + 
