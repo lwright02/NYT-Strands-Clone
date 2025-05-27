@@ -18,6 +18,36 @@ COLORS: dict[str, tuple[int, int, int]] = {
     }
 CELL_SIZE: int = 50
 
+def show_title_screen(surface: pygame.Surface, width: int, height: int) -> None:
+    """
+    Displays a title screen before the game starts.
+    """
+    font_title = pygame.font.SysFont(None, 80)
+    font_sub = pygame.font.SysFont(None, 40)
+
+    title_text = font_title.render("Strands", True, COLORS["BLACK"])
+    sub_text = font_sub.render("Press Enter to Play", True, COLORS["BLACK"])
+
+    title_rect = title_text.get_rect(center=(width // 2, height // 2 - 40))
+    sub_rect = sub_text.get_rect(center=(width // 2, height // 2 + 40))
+
+    running = True
+    while running:
+        surface.fill(COLORS["WHITE"])
+        surface.blit(title_text, title_rect)
+        surface.blit(sub_text, sub_rect)
+        pygame.display.update()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if sub_rect.collidepoint(event.pos):
+                    running = False
+
 def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase, 
     pending: list[Pos], art: ArtGUIBase) -> None:
     """
@@ -165,6 +195,9 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
     surface_height: int = CELL_SIZE * (rows + 1) + (2 * FRAME)
     surface: pygame.Surface = pygame.display.set_mode((surface_width, 
         surface_height))
+    
+    show_title_screen(surface, surface_width, surface_height)
+
     clock: pygame.time.Clock = pygame.time.Clock()
     answers: list[tuple[str, StrandBase]] = game.answers()
 

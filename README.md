@@ -69,4 +69,4 @@ Implemented a full scoring system into the game logic and surfaced it in both GU
 
 ### FEATURE-3
 
-...
+Implemented a title screen for GUI

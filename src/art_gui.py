@@ -80,7 +80,7 @@ class ArtGUICat4(ArtGUIBase):
             (center_x, center_y + spacing + 20)
         ]
         for (x, y) in nodes:
-            pygame.draw.circle(surface, (50, 100, 200), (x, y), 10)
+            pygame.draw.circle(surface, (0, 195, 255), (x, y), 10)
         edges = [(0, 1), (1, 2), (0, 3), (1, 4), (3, 5), (4, 5)]
         for i, j in edges:
             pygame.draw.line(surface, (100, 100, 100), nodes[i], nodes[j], 2)
