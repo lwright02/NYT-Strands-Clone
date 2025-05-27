@@ -360,11 +360,6 @@ class StrandsGame(StrandsGameBase):
         self._bonus_words: set[str] = set()
         self._score: int = 0
 
-    # DELETE THIS MSG BELOW BEFORE SUBMITTING 
-    # Stuff added to initialization: check valid word lengths; checks if starting position goes off the board
-    # (checks the first position, others are checked when we call the function get position); checks if the board 
-    # is covered. This covers the 3 things they gave and it adds a few other things I think we were missing. 
-
     def theme(self) -> str:
         """
         Return the theme for the game.
