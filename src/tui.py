@@ -348,7 +348,7 @@ def play_game(game_file: str, frame: ArtTUIBase, show: bool = False,
     "-a",
     "--art",
     "art",
-    type=click.Choice(["wrappers", "cat1", "cat2"]),
+    type=click.Choice(["wrappers", "cat0", "cat1", "cat2"]),
     help="Art frame to use (ex: stub, cat1). Supports wrappers, cat1, and cat2. Uses stubs if not provided.",
 )
 def main(show: bool, special: bool, game: str | None, hint: int, art: str | None):
@@ -376,7 +376,7 @@ def main(show: bool, special: bool, game: str | None, hint: int, art: str | None
 
     if special:
         frame = ArtTUISpecial(1, interior)
-    elif art == "wrappers":
+    elif art == "wrappers" or "cat0":
         frame = ArtTUIWrappers(1, interior)
     elif art == "cat1":
         frame = ArtTUICat1(3, interior)
