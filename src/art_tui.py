@@ -11,7 +11,6 @@ green: str = "\033[32m"
 red: str = "\033[31m"
 pink: str = "\033[35m"
 colors = [blue, green, red, pink]
-# was gonna add smth with colors to the special but will lowkey do this later
 
 class ArtTUIWrappers(ArtTUIBase):
     def __init__(self, frame_width: int, interior_width: int):
@@ -142,7 +141,7 @@ class ArtTUISpecial(ArtTUIBase):
     
     def print_top_edge(self) -> None:
         pattern: str = "SPECIAL STUFF"
-        pad: str = max(0, self.interior_width - len(pattern) - 1)
+        pad: int = max(0, self.interior_width - len(pattern) - 1)
         color = random.choice(colors)
         print(color + "# " + pattern + " " * pad + " #" + reset)
 

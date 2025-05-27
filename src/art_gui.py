@@ -47,7 +47,7 @@ class ArtGUICat3(ArtGUIBase):
         hex_width = int(1.732 * hex_radius)
         vert_spacing = int(0.75 * hex_height)
 
-        def hexagon_points(cx, cy):
+        def hexagon_points(cx: float, cy: float) -> list:
             points = []
             for i in range(6):
                 angle = i * 60 * 3.14159 / 180
@@ -90,7 +90,7 @@ class ArtGUICat4(ArtGUIBase):
 @click.option('-f', '--frame', type=int, help="Frame width in pixels.")
 @click.option('-w', '--width', type=int, help="Window width in pixels.")
 @click.option('-h', '--height', type=int, help="Window height in pixels.")
-def main(art, frame, width, height):
+def main(art: str, frame: int, width: int, height: int) -> None:
     supported = {
         "9slices": ArtGUI9Slice,
         "cat0": ArtGUI9Slice,
