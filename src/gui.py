@@ -22,16 +22,16 @@ def show_title_screen(surface: pygame.Surface, width: int, height: int) -> None:
     """
     Displays a title screen before the game starts.
     """
-    font_title = pygame.font.SysFont(None, 80)
-    font_sub = pygame.font.SysFont(None, 40)
+    font_title: pygame.font.Font = pygame.font.SysFont(None, 80)
+    font_sub: pygame.font.Font = pygame.font.SysFont(None, 40)
 
-    title_text = font_title.render("Strands", True, COLORS["BLACK"])
-    sub_text = font_sub.render("Press Enter to Play", True, COLORS["BLACK"])
+    title_text: pygame.Surface = font_title.render("Strands", True, COLORS["BLACK"])
+    sub_text: pygame.Surface = font_sub.render("Press Enter to Play", True, COLORS["BLACK"])
 
-    title_rect = title_text.get_rect(center=(width // 2, height // 2 - 40))
-    sub_rect = sub_text.get_rect(center=(width // 2, height // 2 + 40))
+    title_rect: pygame.Rect = title_text.get_rect(center=(width // 2, height // 2 - 40))
+    sub_rect: pygame.Rect = sub_text.get_rect(center=(width // 2, height // 2 + 40))
 
-    running = True
+    running: bool = True
     while running:
         surface.fill(COLORS["WHITE"])
         surface.blit(title_text, title_rect)
@@ -53,7 +53,7 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase,
     """
     Draws the current state of the Board
     """
-    #Uses the imported art to dra the frame
+    #Uses the imported art to draw the frame
     art.draw_background(surface)
     FRAME = art.frame_width + 15
     
@@ -111,8 +111,8 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase,
 
     # Draws the hints on the board only if the hint meter allows
     active_hint: tuple[int, bool] | None = strands.active_hint()
-    hint_meter = strands.hint_meter()
-    hint_threshold = strands.hint_threshold()
+    hint_meter: int = strands.hint_meter()
+    hint_threshold: int = strands.hint_threshold()
     if active_hint is not None:
         index: int
         ends: bool
@@ -164,17 +164,17 @@ def refresh_board(surface: pygame.surface.Surface, strands: StrandsGameBase,
     surface.blit(surf1, rect1)
 
     # Second line: Score
-    score_text = f"Score: {strands.get_score()}"
-    surf2 = font.render(score_text, True, COLORS["BLACK"])
+    score_text: str = f"Score: {strands.get_score()}"
+    surf2: pygame.Surface = font.render(score_text, True, COLORS["BLACK"])
     # place it just below the first line
-    rect2 = surf2.get_rect(midtop=(
+    rect2: pygame.Rect = surf2.get_rect(midtop=(
         surface_width // 2,
         rect1.bottom + 5
     ))
     pygame.draw.rect(surface, COLORS["WHITE"], rect2.inflate(20, 10))
     surface.blit(surf2, rect2)
 
-def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: ArtGUIBase | None = None) -> None:
+def run_game(filename: str, art: ArtGUIBase, show: bool = False, hint_threshold: int = 3) -> None:
     """
     Plays a game of Strands on a pygame window
     """
@@ -190,7 +190,7 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
     board: BoardBase = game.board()
     rows: int = board.num_rows()
     cols: int = board.num_cols()
-    FRAME = art.frame_width + 15
+    FRAME: int = art.frame_width + 15
     surface_width: int = CELL_SIZE * cols + (2 * FRAME)
     surface_height: int = CELL_SIZE * (rows + 1) + (2 * FRAME)
     surface: pygame.Surface = pygame.display.set_mode((surface_width, 
@@ -201,9 +201,9 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
     clock: pygame.time.Clock = pygame.time.Clock()
     answers: list[tuple[str, StrandBase]] = game.answers()
 
-    mouse_down = False
-    mouse_moved = False
-    running = True
+    mouse_down: bool = False
+    mouse_moved: bool = False
+    running: bool = True
     while running:
         events = pygame.event.get()
         for event in events:
@@ -277,8 +277,8 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
                     mouse_down = False
 
                     if len(currently_selected) >= 2 and mouse_moved:
-                        start: Pos = currently_selected[0]
-                        steps: list[Step] = [
+                        start = currently_selected[0]
+                        steps = [
                             currently_selected[i].step_to(
                             currently_selected[i + 1]) for i in 
                             range(len(currently_selected) - 1)]
@@ -298,9 +298,7 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
 
                     mouse_moved = False
 
-            elif event.type == pygame.MOUSEMOTION and mouse_down and not show:    
-                x: int
-                y: int        
+            elif event.type == pygame.MOUSEMOTION and mouse_down and not show:        
                 x, y = event.pos
                 col = (x - FRAME) // CELL_SIZE
                 row = (y - FRAME) // CELL_SIZE
@@ -324,6 +322,7 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
                                     index = currently_selected.index(cell_pos)
                                     currently_selected = currently_selected[:index + 1]
 
+
         refresh_board(surface, game, currently_selected, art)
         pygame.display.update()
 
@@ -344,16 +343,17 @@ def run_game(filename: str, show: bool = False, hint_threshold: int = 3, art: Ar
 @click.option('-h', '--hint', default=3, type=int, help="Hint threshold (default: 3).")
 @click.option('-a', '--art', default="stub", help="Art frame to use (ex: stub, cat1).")
 
-def main(show: bool, game: str | None, hint: int, art: str):
+def main(show: bool, game: str | None, hint: int, art: str) -> None:
     if game:
-        filename = f"boards/{game}.txt"
+        filename: str = f"boards/{game}.txt"
     else:
-        txt_files = [f for f in os.listdir("boards") if f.endswith(".txt")]
+        txt_files: list[str] = [f for f in os.listdir("boards") if f.endswith(".txt")]
         if not txt_files:
             print("Can't find game file")
             sys.exit(1)
         filename = f"boards/{random.choice(txt_files)}"
     
+    art_frame: ArtGUIBase
     if art == "stub":
         art_frame = ArtGUIStub(frame_width=15)
     elif art == "9slices" or art == "cat0":
