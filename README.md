@@ -32,8 +32,7 @@ threshold, you can request a hint. The logic for this is implemented across
 several functions, namely those below line 417. 
 
 ### GUI
-This component received two S scores in Milestone 2. 
-
+This component received two S scores in Milestone 2.
 
 ### TUI
 
