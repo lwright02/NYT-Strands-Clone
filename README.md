@@ -19,12 +19,12 @@
     - `python3 src/gui.py --show -g fore`
   - Use -h or --hint followed by an integer to change the hint threshold:
     - `python3 src/gui.py -h 5
-  - Launch game with different art frames:
-    - `python3 src/gui.py --art stub -g
-    - `python3 src/gui.py --art 9slices -g
-    - `python3 src/gui.py --art cat0 -g
-    - `python3 src/gui.py --art cat3 -g
-    - `python3 src/gui.py --art cat4 -g
+  - Use -a or --art to launch game with different art frames:
+    - `python3 src/gui.py -a stub -g`
+    - `python3 src/gui.py -a 9slices -g`
+    - `python3 src/gui.py --art cat0 -g`
+    - `python3 src/gui.py --art cat3 -g`
+    - `python3 src/gui.py --art cat4 -g`
   - Run random games and play moves:
     - `python3 src/gui.py` (run multiple times)
 
