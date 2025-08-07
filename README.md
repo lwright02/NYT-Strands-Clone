@@ -8,3 +8,4 @@
 - Logic: All Members
 
 # Instructions:
+1. Navigate to the root of the Repository
