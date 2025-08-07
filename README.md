@@ -11,7 +11,12 @@
 
 - Navigate to the root of the Repository before running any commands
 - pip install pygame click
+- `python3 src/gui.py`
+    - This will generate a random game with the default art frame
+- Drag or click letters to form word strands
+- Press h key for hint when hint meter is full
 
+# Extra Fun
 - **GUI Commands:**
   - Use -g or --game to specify board:
     - `python3 src/gui.py -g fore`
@@ -25,8 +30,6 @@
     - `python3 src/gui.py --art cat0 -g`
     - `python3 src/gui.py --art cat3 -g`
     - `python3 src/gui.py --art cat4 -g`
-  - Run random games and play moves:
-    - `python3 src/gui.py` (run multiple times)
 
 - **TUI Commands:**  
   *(Replace `gui.py` with `tui.py` in all above commands)*
